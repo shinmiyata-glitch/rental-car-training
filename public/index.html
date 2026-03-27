@@ -1410,16 +1410,16 @@ function formatAIMessage(text) {
     if (trimmed.startsWith('・')) {
       if (!inList) { result.push('<ul class="msg-list">'); inList = true; }
       result.push(`<li>${trimmed.slice(1).trim()}</li>`);
+    } else if (inList && trimmed === '') {
+      // skip blank lines inside list
     } else {
       if (inList) { result.push('</ul>'); inList = false; }
-      result.push(line);
+      if (trimmed === '') result.push('<br>');
+      else result.push(`<p style="margin:0 0 6px 0;">${line}</p>`);
     }
   }
   if (inList) result.push('</ul>');
-  return result
-    .map(line => (line === '' || line === '\n') ? '<br>' : line)
-    .join('<br>')
-    .replace(/(<br>){3,}/g, '<br><br>');
+  return result.join('');
 }
 
 // ====================================================
