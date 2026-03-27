@@ -1992,7 +1992,9 @@ function selectTheme(id) {
   document.getElementById('chatInput').placeholder = '質問を入力…（ボタンでも質問できます）';
 
   const theme = getTheme(id);
-  document.getElementById('chatMessages').innerHTML = '';
+  const chatMessages = document.getElementById('chatMessages');
+  chatMessages.innerHTML = '';
+  chatMessages.scrollTop = 0;
   renderManual(theme);
   renderCheckPoints(theme);
   renderQuickButtons(theme);
@@ -2008,6 +2010,7 @@ function selectTheme(id) {
     state.isTyping = false;
     addDivider(`${theme.icon} ${theme.name} — 学習開始`);
     addAIMessage(theme.intro);
+    setTimeout(() => { document.getElementById('chatMessages').scrollTop = 0; }, 100);
   }, 1200);
 }
 
