@@ -14,4 +14,6 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 1baf4e7b0d219f40560392eaef4723c8
-          command: pages deploy public --project-name rental-car-training2
+          command: |
+            pages project create orix-rental-training --production-branch main || true
+            pages deploy public --project-name orix-rental-training --commit-dirty=true
