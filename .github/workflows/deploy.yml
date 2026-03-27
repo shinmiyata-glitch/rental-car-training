@@ -9,11 +9,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Create Pages project (ignore if exists)
+        continue-on-error: true
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: 1baf4e7b0d219f40560392eaef4723c8
+          command: pages project create orix-rental-training --production-branch main
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 1baf4e7b0d219f40560392eaef4723c8
-          command: |
-            pages project create orix-rental-training --production-branch main || true
-            pages deploy public --project-name orix-rental-training --commit-dirty=true
+          command: pages deploy public --project-name orix-rental-training --commit-dirty=true
