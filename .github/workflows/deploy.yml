@@ -13,5 +13,5 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: 9f363632f9c371871c8a46c3556f69c5
+          accountId: 1baf4e7b0d219f40560392eaef4723c8
           command: pages deploy public --project-name rental-car-training2
