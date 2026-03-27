@@ -514,6 +514,50 @@
     cursor: pointer; font-family: inherit; transition: all 0.15s;
   }
   .modal-print-btn:hover { background: var(--gray-100); }
+
+  /* GUIDE MODE */
+  .guide-next-btn {
+    display: block; margin: 10px auto;
+    padding: 10px 28px;
+    background: var(--primary); color: white;
+    border: none; border-radius: 20px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .guide-next-btn:hover:not(:disabled) { background: var(--primary-dark); }
+  .guide-next-btn:disabled { opacity: 0.4; cursor: default; }
+  .guide-progress { text-align: center; font-size: 11px; color: var(--gray-400); margin-top: 4px; }
+
+  /* FLOWCHART */
+  .flowchart-wrap { padding: 4px 0; }
+  .flowchart-step {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 10px;
+    background: var(--primary-light);
+    border-left: 3px solid var(--primary);
+    border-radius: 4px; margin-bottom: 2px;
+    font-size: 11px; font-weight: 600; color: var(--gray-800);
+  }
+  .flowchart-step.decision {
+    background: #fff8e1; border-left-color: #f59e0b;
+  }
+  .flowchart-step-num {
+    width: 18px; height: 18px; background: var(--primary);
+    color: white; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; flex-shrink: 0;
+  }
+  .flowchart-step.decision .flowchart-step-num { background: #f59e0b; }
+  .flowchart-arrow { text-align: center; font-size: 11px; color: var(--gray-300); line-height: 1.4; }
+
+  /* NG WORD WARNING */
+  .ng-word-warning {
+    display: none; background: #fef2f2;
+    border: 1px solid #fca5a5; border-radius: 6px;
+    padding: 6px 10px; font-size: 12px; color: #dc2626;
+    margin: 4px 8px;
+  }
+  .ng-word-warning.visible { display: block; }
 </style>
 </head>
 <body>
@@ -566,6 +610,7 @@
     <div class="chat-input-area">
       <div class="quick-buttons" id="quickButtons"></div>
       <div class="mic-status" id="micStatus">🔴 録音中… 話し終えたらもう一度押してください</div>
+      <div class="ng-word-warning" id="ngWordWarning"></div>
       <div class="input-row">
         <button class="mic-btn" id="micBtn" onclick="toggleMic()" title="音声入力">🎤</button>
         <textarea class="chat-input" id="chatInput" placeholder="質問を入力、または🎤で音声入力…" rows="1"></textarea>
@@ -589,6 +634,10 @@
       <div class="check-list" id="checkList">
         <div style="font-size:12px;color:var(--gray-400);">テーマを選択してください</div>
       </div>
+    </div>
+    <div class="right-section" id="flowchartSection" style="display:none;">
+      <div class="right-section-title">🔄 業務フロー図</div>
+      <div class="flowchart-wrap" id="flowchartList"></div>
     </div>
     <div class="right-section">
       <div class="right-section-title">📊 学習サマリー</div>
@@ -803,6 +852,22 @@ const THEMES = [
         reason: '有効期限切れ・紛失などが後から判明すると貸出不可になりトラブル'
       },
     ],
+    flowchart: [
+      { label: '受電（保険会社・ディーラー・お客様）' },
+      { label: 'お客様情報確認（氏名・連絡先）' },
+      { label: '保険の代車特約確認（あり/なし）', type: 'decision' },
+      { label: '修理期間・必要車種の確認' },
+      { label: '在庫確認・仮押さえ' },
+      { label: '料金説明（特約あり→無料、なし→有料）' },
+      { label: '貸渡確認書への署名取得・完了' },
+    ],
+    ngWords: [
+      { word: '無料です', suggestion: '保険特約を確認してから料金を案内しましょう' },
+      { word: '知りません', suggestion: '「確認いたします」と伝え、上長へ確認してください' },
+      { word: 'たぶん', suggestion: '不確かな情報は伝えず「確認します」と言いましょう' },
+      { word: 'できません', suggestion: '「確認してみます」と伝え、上長に相談しましょう' },
+      { word: '大丈夫です', suggestion: '具体的な内容を確認・説明してから案内しましょう' },
+    ],
   },
   {
     id: 'hojin',
@@ -989,6 +1054,22 @@ const THEMES = [
         reason: '担当者が個人立替で精算したいケースがあり、後から変更できない場合がある'
       },
     ],
+    flowchart: [
+      { label: '受電・法人会員番号の確認' },
+      { label: '与信状況の確認（上限・残枠）', type: 'decision' },
+      { label: '利用者名・利用目的の確認' },
+      { label: '車種・台数・利用期間の確認' },
+      { label: '法人割引の適用確認' },
+      { label: '請求先（個人/法人）の確認', type: 'decision' },
+      { label: '予約確定・確認書送付' },
+    ],
+    ngWords: [
+      { word: '与信', suggestion: '「ご利用状況を確認します」と言い換えましょう' },
+      { word: '大丈夫です', suggestion: '具体的に確認してから案内しましょう' },
+      { word: 'できません', suggestion: '「確認してみます」と伝え、上長に相談しましょう' },
+      { word: 'たぶん', suggestion: '不確かな情報は伝えず「確認します」と言いましょう' },
+      { word: '知りません', suggestion: '「確認いたします」と伝え、上長へ確認してください' },
+    ],
   },
   {
     id: 'pet',
@@ -1165,6 +1246,22 @@ const THEMES = [
         good: '「座席への乗せ上げ・助手席への乗車は禁止です」「返却時の車内確認があります」も伝える',
         reason: '禁止事項未説明→違反発生→追加料金トラブルの原因になる'
       },
+    ],
+    flowchart: [
+      { label: '受電・お問い合わせ内容の確認' },
+      { label: 'ペット種別・サイズの確認', type: 'decision' },
+      { label: '同乗可否・条件の案内（ケージ必須等）' },
+      { label: 'ペット対応車両の在庫確認' },
+      { label: '禁止事項・追加料金の説明' },
+      { label: '同意確認・予約確定' },
+      { label: '返却時車内確認の案内' },
+    ],
+    ngWords: [
+      { word: '大丈夫です', suggestion: '種別・サイズを確認してから可否を案内しましょう' },
+      { word: 'できません', suggestion: '「条件を確認します」と伝え、正確な情報を案内しましょう' },
+      { word: 'たぶん', suggestion: 'ペット可否は明確に確認してから答えましょう' },
+      { word: '知りません', suggestion: '「確認いたします」と伝え、上長へ確認してください' },
+      { word: 'ペットを乗せてOK', suggestion: 'ケージ必須・禁止事項もセットで必ず説明してください' },
     ],
   },
   {
@@ -1361,6 +1458,22 @@ const THEMES = [
         reason: '共感なしの料金説明はお客様を更に感情的にさせクレームが大きくなる'
       },
     ],
+    flowchart: [
+      { label: '受電・予約番号の確認' },
+      { label: '変更 or キャンセルの意向確認', type: 'decision' },
+      { label: 'キャンセル：日数計算・料率確定', type: 'decision' },
+      { label: 'お客様へ金額説明・了承確認' },
+      { label: 'システムで変更/キャンセル処理' },
+      { label: '返金方法・タイミングの説明' },
+      { label: '変更確認書/完了メール送付' },
+    ],
+    ngWords: [
+      { word: '無理です', suggestion: '「確認してみます」と伝え、上長に相談しましょう' },
+      { word: '規約ですので', suggestion: '先に共感を示してから規約の説明をしましょう' },
+      { word: '知りません', suggestion: '「確認いたします」と伝え、上長へ確認してください' },
+      { word: 'できません', suggestion: '「確認してみます」と伝え、可能な選択肢を探しましょう' },
+      { word: 'たぶん', suggestion: 'キャンセル料の計算は正確に。不確かな場合は確認してください' },
+    ],
   },
 ];
 
@@ -1380,6 +1493,8 @@ let state = {
   roleplayLog: [],
   roleplayResults: {},
   activePageId: null,
+  guideModeActive: false,
+  guideModeIndex: -1,
 };
 
 // ====================================================
@@ -1505,11 +1620,125 @@ function renderQuickButtons(theme) {
   if (!theme) { container.innerHTML = ''; return; }
   const btns = Object.keys(theme.qas).map(q =>
     `<button class="quick-btn" onclick="handleQuickBtn(this,'${escQ(q)}')">${q}</button>`).join('');
+  const guideBtn = `<button class="quick-btn" style="border-color:var(--primary);color:var(--primary);background:var(--primary-light);font-weight:700;" onclick="startGuideMode()">📚 ガイドモードで学習</button>`;
   const quizBtn = `<button class="quick-btn quiz-start-btn" onclick="startQuiz()">📝 理解度チェック</button>`;
   const rpBtn = `<button class="quick-btn roleplay-btn" onclick="startRoleplay()">🎭 ロールプレイ</button>`;
   const csBtn = `<button class="quick-btn" style="border-color:#0891b2;color:#0891b2;background:#ecfeff;" onclick="showCheatsheet()">📋 チートシート</button>`;
   const ngBtn = `<button class="quick-btn" style="border-color:#dc2626;color:#dc2626;background:#fef2f2;" onclick="showNgExamples()">⛔ NG例を見る</button>`;
-  container.innerHTML = btns + quizBtn + rpBtn + csBtn + ngBtn;
+  container.innerHTML = guideBtn + btns + quizBtn + rpBtn + csBtn + ngBtn;
+}
+
+// ====================================================
+// FLOWCHART
+// ====================================================
+function renderFlowchart(theme) {
+  const section = document.getElementById('flowchartSection');
+  const container = document.getElementById('flowchartList');
+  if (!theme || !theme.flowchart || !theme.flowchart.length) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+  container.innerHTML = theme.flowchart.map((step, i) =>
+    `${i > 0 ? '<div class="flowchart-arrow">▼</div>' : ''}
+     <div class="flowchart-step ${step.type === 'decision' ? 'decision' : ''}">
+       <div class="flowchart-step-num">${i + 1}</div>
+       <div>${step.label}</div>
+     </div>`
+  ).join('');
+}
+
+// ====================================================
+// GUIDE MODE
+// ====================================================
+function startGuideMode() {
+  const theme = getTheme(state.currentThemeId);
+  if (!theme || state.guideModeActive || state.roleplayActive) return;
+  state.guideModeActive = true;
+  state.guideModeIndex = -1;
+  addDivider('📚 ガイドモード — 自動研修スタート');
+  addAIMessage('ガイドモードを開始します。各項目を順番に説明していきます。「次へ」ボタンを押して進めてください。');
+  setTimeout(addGuideModeNextButton, 300);
+}
+
+function addGuideModeNextButton() {
+  const theme = getTheme(state.currentThemeId);
+  if (!theme) return;
+  const qas = Object.entries(theme.qas);
+  const nextIndex = state.guideModeIndex + 1;
+  const container = document.getElementById('chatMessages');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap ai guide-btn-wrap';
+  if (nextIndex < qas.length) {
+    const nextLabel = qas[nextIndex][0];
+    wrap.innerHTML = `
+      <div class="msg-avatar ai" style="opacity:0;pointer-events:none;">TR</div>
+      <div>
+        <button class="guide-next-btn" onclick="advanceGuideMode()">次へ → ${nextLabel}</button>
+        <div class="guide-progress">ステップ ${nextIndex + 1} / ${qas.length + 1}（最後は理解度チェック）</div>
+      </div>`;
+  } else {
+    wrap.innerHTML = `
+      <div class="msg-avatar ai" style="opacity:0;pointer-events:none;">TR</div>
+      <div>
+        <button class="guide-next-btn" onclick="finishGuideMode()">✅ 全項目完了 — 理解度チェックへ</button>
+        <div class="guide-progress">全 ${qas.length} 項目の学習完了！</div>
+      </div>`;
+  }
+  container.appendChild(wrap);
+  scrollBottom();
+}
+
+function advanceGuideMode() {
+  const theme = getTheme(state.currentThemeId);
+  if (!theme) return;
+  const qas = Object.entries(theme.qas);
+  state.guideModeIndex++;
+  document.querySelectorAll('.guide-btn-wrap .guide-next-btn').forEach(b => { b.disabled = true; });
+
+  if (state.guideModeIndex >= qas.length) { finishGuideMode(); return; }
+
+  const [question, qa] = qas[state.guideModeIndex];
+  addMessage('user', question);
+  showTyping();
+  state.isTyping = true;
+  setTimeout(() => {
+    removeTyping();
+    state.isTyping = false;
+    addAIMessage(qa.answer);
+    if (qa.citations && qa.citations.length) {
+      setTimeout(() => { addCitationBubble(qa.citations); setTimeout(addGuideModeNextButton, 300); }, 200);
+    } else {
+      setTimeout(addGuideModeNextButton, 300);
+    }
+  }, 800 + Math.random() * 400);
+}
+
+function finishGuideMode() {
+  state.guideModeActive = false;
+  document.querySelectorAll('.guide-btn-wrap .guide-next-btn').forEach(b => { b.disabled = true; });
+  addDivider('📚 ガイドモード完了 — 理解度チェック開始');
+  setTimeout(startQuiz, 600);
+}
+
+// ====================================================
+// NG WORD CHECK
+// ====================================================
+function checkNgWords(text) {
+  const theme = getTheme(state.currentThemeId);
+  const warning = document.getElementById('ngWordWarning');
+  if (!state.roleplayActive || !theme || !theme.ngWords) {
+    warning.classList.remove('visible');
+    return;
+  }
+  const lower = text;
+  const found = theme.ngWords.find(w => lower.includes(w.word));
+  if (found) {
+    warning.textContent = `⚠️ NGワード：「${found.word}」→ ${found.suggestion}`;
+    warning.classList.add('visible');
+  } else {
+    warning.classList.remove('visible');
+  }
 }
 
 // ====================================================
@@ -1969,6 +2198,7 @@ function endRoleplay() {
   document.getElementById('statusDot').className = 'status-dot';
   document.getElementById('chatHeaderStatus').textContent = 'オンライン ・ 業務知識特化モデル';
   document.getElementById('chatInput').placeholder = '質問を入力…（ボタンでも質問できます）';
+  document.getElementById('ngWordWarning').classList.remove('visible');
 
   renderThemes(); updateStats(); scrollBottom();
 }
@@ -1991,12 +2221,17 @@ function selectTheme(id) {
   document.getElementById('chatHeaderStatus').textContent = 'オンライン ・ 業務知識特化モデル';
   document.getElementById('chatInput').placeholder = '質問を入力…（ボタンでも質問できます）';
 
+  state.guideModeActive = false;
+  state.guideModeIndex = -1;
+  document.getElementById('ngWordWarning').classList.remove('visible');
+
   const theme = getTheme(id);
   const chatMessages = document.getElementById('chatMessages');
   chatMessages.innerHTML = '';
   chatMessages.scrollTop = 0;
   renderManual(theme);
   renderCheckPoints(theme);
+  renderFlowchart(theme);
   renderQuickButtons(theme);
   renderThemes();
   document.getElementById('noteSection').style.display = 'block';
@@ -2089,7 +2324,7 @@ function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(e
 document.getElementById('chatInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
 });
-document.getElementById('chatInput').addEventListener('input', function() { autoResize(this); });
+document.getElementById('chatInput').addEventListener('input', function() { autoResize(this); checkNgWords(this.value); });
 
 // ====================================================
 // VOICE INPUT
