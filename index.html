@@ -1,0 +1,2211 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI新人教育システム | レンタカー予約センター</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary: #8F1C5D;
+    --primary-light: #f9eef5;
+    --primary-dark: #6e1548;
+    --success: #16a34a;
+    --success-light: #f0fdf4;
+    --danger: #dc2626;
+    --danger-light: #fef2f2;
+    --warning: #d97706;
+    --warning-light: #fffbeb;
+    --purple: #7c3aed;
+    --purple-light: #faf5ff;
+    --navy: #1a2e4a;
+    --navy-light: #e8edf3;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --white: #ffffff;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', sans-serif;
+    background: var(--gray-50);
+    color: var(--gray-800);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  .app-header {
+    background: var(--navy);
+    border-bottom: 3px solid var(--primary);
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .header-brand { display: flex; align-items: center; gap: 12px; }
+  .header-logo {
+    height: 34px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .orix-logo-text {
+    font-size: 20px; font-weight: 900; color: var(--primary);
+    letter-spacing: -0.5px; font-style: italic;
+  }
+  .orix-logo-sub {
+    font-size: 10px; color: rgba(255,255,255,0.6); letter-spacing: 0.05em;
+    margin-top: 1px;
+  }
+  .header-divider {
+    width: 1px; height: 28px; background: rgba(255,255,255,0.2); margin: 0 4px;
+  }
+  .header-title { font-size: 14px; font-weight: 700; color: #ffffff; }
+  .header-subtitle { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 1px; }
+  .header-badge {
+    background: var(--primary); color: white;
+    font-size: 11px; font-weight: 700;
+    padding: 4px 12px; border-radius: 20px;
+  }
+
+  /* MAIN LAYOUT */
+  .app-main {
+    display: grid;
+    grid-template-columns: 240px 1fr 300px;
+    flex: 1; overflow: hidden;
+  }
+
+  /* LEFT PANEL */
+  .panel-left {
+    background: var(--white);
+    border-right: 1px solid var(--gray-200);
+    display: flex; flex-direction: column; overflow-y: auto;
+  }
+  .panel-section-title {
+    font-size: 11px; font-weight: 700; color: var(--gray-400);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 16px 16px 8px;
+  }
+  .theme-list { padding: 0 8px 16px; }
+  .theme-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px; border-radius: var(--radius);
+    cursor: pointer; transition: all 0.15s; margin-bottom: 2px;
+    border: 1px solid transparent;
+  }
+  .theme-item:hover { background: var(--gray-50); }
+  .theme-item.active { background: var(--primary-light); border-color: #d9a8c8; }
+  .theme-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0; background: var(--gray-100);
+  }
+  .theme-item.active .theme-icon { background: #f2d4e8; }
+  .theme-info { flex: 1; min-width: 0; }
+  .theme-name { font-size: 13px; font-weight: 600; color: var(--gray-800); line-height: 1.3; }
+  .theme-desc { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+  .theme-status {
+    font-size: 10px; font-weight: 600; padding: 2px 7px;
+    border-radius: 12px; margin-top: 5px; display: inline-block;
+  }
+  .status-unread { background: var(--gray-100); color: var(--gray-500); }
+  .status-active { background: #f2d4e8; color: var(--primary); }
+  .status-done { background: var(--success-light); color: var(--success); }
+  .progress-section { padding: 12px 16px; border-top: 1px solid var(--gray-100); }
+  .progress-label { font-size: 11px; color: var(--gray-500); margin-bottom: 6px; font-weight: 600; }
+  .progress-bar-wrap { background: var(--gray-100); border-radius: 99px; height: 6px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: var(--primary); border-radius: 99px; transition: width 0.5s; }
+  .progress-count { font-size: 11px; color: var(--gray-400); margin-top: 5px; }
+
+  /* CENTER PANEL - CHAT */
+  .panel-center { display: flex; flex-direction: column; overflow: hidden; background: var(--gray-50); }
+  .chat-header {
+    background: var(--white); border-bottom: 1px solid var(--gray-200);
+    padding: 12px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+  }
+  .chat-header.roleplay-active { background: #fdf4ff; border-bottom-color: #e9d5ff; }
+  .ai-avatar {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, #8F1C5D, #6e1548);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 16px; flex-shrink: 0;
+  }
+  .ai-avatar.customer { background: linear-gradient(135deg, #d97706, #dc2626); }
+  .chat-header-info { flex: 1; }
+  .chat-header-name { font-size: 14px; font-weight: 700; color: var(--gray-900); }
+  .chat-header-status { font-size: 12px; color: var(--gray-400); display: flex; align-items: center; gap: 5px; }
+  .status-dot { width: 7px; height: 7px; background: #22c55e; border-radius: 50%; display: inline-block; }
+  .status-dot.orange { background: #f97316; }
+
+  /* CHAT */
+  .chat-messages {
+    flex: 1; overflow-y: auto; padding: 20px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .chat-messages::-webkit-scrollbar { width: 4px; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 2px; }
+
+  .msg-wrap { display: flex; gap: 8px; animation: fadeUp 0.25s ease; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .msg-wrap.user { flex-direction: row-reverse; }
+  .msg-avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0; margin-top: 2px;
+  }
+  .msg-avatar.ai { background: linear-gradient(135deg, #8F1C5D, #6e1548); color: white; }
+  .msg-avatar.customer-av { background: linear-gradient(135deg, #d97706, #dc2626); color: white; }
+  .msg-avatar.user-av { background: var(--gray-200); color: var(--gray-600); }
+  .msg-bubble {
+    max-width: 80%; padding: 10px 14px; border-radius: 12px;
+    font-size: 13px; line-height: 1.65; white-space: pre-wrap; word-break: break-word;
+  }
+  .msg-wrap.ai .msg-bubble {
+    background: var(--white); color: var(--gray-800);
+    border: 1px solid var(--gray-200); border-top-left-radius: 2px;
+    box-shadow: var(--shadow-sm);
+  }
+  .msg-wrap.customer .msg-bubble {
+    background: #fff7ed; color: #92400e;
+    border: 1px solid #fed7aa; border-top-left-radius: 2px;
+    box-shadow: var(--shadow-sm);
+  }
+  .msg-wrap.user .msg-bubble {
+    background: var(--primary); color: white; border-top-right-radius: 2px;
+  }
+  .msg-meta { font-size: 10px; color: var(--gray-400); margin-top: 3px; padding: 0 2px; }
+  .msg-wrap.user .msg-meta { text-align: right; }
+
+  .msg-section-tag {
+    font-size: 11px; font-weight: 700; color: var(--primary);
+    background: var(--primary-light); padding: 1px 7px; border-radius: 4px;
+    display: inline-block; margin-bottom: 4px;
+  }
+  .msg-list { padding-left: 0; list-style: none; }
+  .msg-list li { padding: 2px 0 2px 14px; position: relative; font-size: 13px; }
+  .msg-list li::before { content: '・'; position: absolute; left: 0; color: var(--gray-400); }
+
+  /* CITATION CHIP */
+  .citation-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; padding: 4px 10px; border-radius: 6px;
+    margin: 3px 3px 0 0; cursor: pointer;
+    border: 1px solid #e9d5ff; background: var(--purple-light); color: var(--purple);
+    transition: all 0.15s; font-weight: 500;
+  }
+  .citation-chip:hover { background: #ede9fe; }
+  .citation-page { font-weight: 700; color: var(--purple); }
+  .citation-section { color: var(--gray-500); font-size: 10px; }
+
+  /* TYPING */
+  .typing-indicator {
+    display: flex; gap: 4px; padding: 10px 14px;
+    background: var(--white); border: 1px solid var(--gray-200);
+    border-radius: 12px; border-top-left-radius: 2px;
+    box-shadow: var(--shadow-sm); width: fit-content;
+  }
+  .typing-dot {
+    width: 7px; height: 7px; background: var(--gray-300); border-radius: 50%;
+    animation: bounce 1.2s ease infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-6px); }
+  }
+
+  /* QUIZ */
+  .quiz-card {
+    background: var(--white); border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg); padding: 16px;
+    box-shadow: var(--shadow); margin: 4px 0;
+  }
+  .quiz-label {
+    font-size: 11px; font-weight: 700; color: var(--warning);
+    background: var(--warning-light); padding: 2px 8px; border-radius: 4px;
+    display: inline-block; margin-bottom: 8px; border: 1px solid #fde68a;
+  }
+  .quiz-question { font-size: 14px; font-weight: 600; color: var(--gray-800); margin-bottom: 12px; line-height: 1.5; }
+  .quiz-options { display: flex; flex-direction: column; gap: 7px; }
+  .quiz-option {
+    padding: 9px 14px; border: 1.5px solid var(--gray-200); border-radius: 8px;
+    font-size: 13px; cursor: pointer; transition: all 0.15s;
+    background: var(--white); text-align: left; color: var(--gray-700); font-family: inherit;
+  }
+  .quiz-option:hover:not(:disabled) { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+  .quiz-option.correct { background: var(--success-light); border-color: var(--success); color: var(--success); }
+  .quiz-option.wrong { background: var(--danger-light); border-color: var(--danger); color: var(--danger); }
+  .quiz-option:disabled { cursor: not-allowed; }
+  .quiz-result {
+    margin-top: 12px; padding: 10px 14px; border-radius: 8px;
+    font-size: 13px; line-height: 1.6; display: none;
+  }
+  .quiz-result.show { display: block; }
+  .quiz-result.correct-result { background: var(--success-light); border: 1px solid #bbf7d0; color: var(--success); }
+  .quiz-result.wrong-result { background: var(--danger-light); border: 1px solid #fecaca; color: var(--danger); }
+
+  /* ROLEPLAY */
+  .roleplay-eval-card {
+    background: var(--white); border: 2px solid #e9d5ff; border-radius: var(--radius-lg);
+    padding: 16px; margin: 4px 0;
+  }
+  .roleplay-eval-title {
+    font-size: 12px; font-weight: 700; color: var(--purple);
+    background: var(--purple-light); padding: 2px 8px; border-radius: 4px;
+    display: inline-block; margin-bottom: 10px; border: 1px solid #e9d5ff;
+  }
+  .eval-item { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; font-size: 12px; border-bottom: 1px solid var(--gray-100); }
+  .eval-item:last-child { border-bottom: none; }
+  .eval-badge {
+    font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; margin-top: 1px;
+  }
+  .eval-ok { background: var(--success-light); color: var(--success); }
+  .eval-ng { background: var(--danger-light); color: var(--danger); }
+  .eval-item-text { color: var(--gray-700); line-height: 1.4; }
+  .eval-score { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--gray-200); font-size: 14px; font-weight: 700; }
+
+  /* CHAT INPUT */
+  .chat-input-area {
+    padding: 12px 16px; background: var(--white);
+    border-top: 1px solid var(--gray-200); flex-shrink: 0;
+  }
+  .quick-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .quick-btn {
+    font-size: 12px; padding: 6px 12px; border-radius: 20px;
+    border: 1.5px solid var(--gray-200); background: var(--white);
+    color: var(--gray-600); cursor: pointer; transition: all 0.15s;
+    font-family: inherit; white-space: nowrap;
+  }
+  .quick-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+  .quick-btn.quiz-start-btn { border-color: var(--warning); color: var(--warning); background: var(--warning-light); font-weight: 600; }
+  .quick-btn.quiz-start-btn:hover { background: #fde68a; }
+  .quick-btn.roleplay-btn { border-color: var(--purple); color: var(--purple); background: var(--purple-light); font-weight: 600; }
+  .quick-btn.roleplay-btn:hover { background: #ede9fe; }
+  .input-row { display: flex; gap: 8px; align-items: flex-end; }
+  .chat-input {
+    flex: 1; padding: 9px 14px; border: 1.5px solid var(--gray-200);
+    border-radius: 22px; font-size: 13px; font-family: inherit; outline: none;
+    resize: none; line-height: 1.5; max-height: 100px; min-height: 38px;
+    transition: border-color 0.15s; background: var(--gray-50);
+  }
+  .chat-input:focus { border-color: var(--primary); background: var(--white); }
+  .send-btn {
+    width: 38px; height: 38px; border-radius: 50%; background: var(--primary);
+    border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 16px; transition: background 0.15s; flex-shrink: 0;
+  }
+  .send-btn:hover { background: var(--primary-dark); }
+  .send-btn:disabled { background: var(--gray-300); cursor: not-allowed; }
+
+  /* MIC BUTTON */
+  .mic-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--gray-100); border: 1.5px solid var(--gray-200);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 17px; transition: all 0.15s; flex-shrink: 0;
+    position: relative;
+  }
+  .mic-btn:hover { background: var(--gray-200); }
+  .mic-btn.recording {
+    background: #fee2e2; border-color: var(--danger);
+    animation: micPulse 1s ease infinite;
+  }
+  @keyframes micPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.3); }
+    50% { box-shadow: 0 0 0 7px rgba(220,38,38,0); }
+  }
+  .mic-status {
+    font-size: 11px; color: var(--danger); font-weight: 600;
+    text-align: center; margin-bottom: 4px; height: 14px;
+    display: none;
+  }
+  .mic-status.visible { display: block; }
+
+  /* RIGHT PANEL */
+  .panel-right {
+    background: var(--white); border-left: 1px solid var(--gray-200);
+    display: flex; flex-direction: column; overflow-y: auto;
+  }
+  .panel-right::-webkit-scrollbar { width: 4px; }
+  .panel-right::-webkit-scrollbar-thumb { background: var(--gray-200); }
+  .right-section { padding: 14px 16px; border-bottom: 1px solid var(--gray-100); }
+  .right-section-title {
+    font-size: 11px; font-weight: 700; color: var(--gray-400);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+  }
+  .manual-item {
+    padding: 9px 12px; border: 1px solid var(--gray-200); border-radius: var(--radius);
+    font-size: 12px; margin-bottom: 6px; background: var(--gray-50);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .manual-item:hover { background: var(--primary-light); border-color: #d9a8c8; }
+  .manual-item.highlighted { background: var(--primary-light); border-color: #93c5fd; }
+  .manual-item-title { font-weight: 600; color: var(--gray-700); margin-bottom: 3px; }
+  .manual-item-desc { color: var(--gray-400); font-size: 11px; margin-bottom: 5px; }
+  .manual-pages { display: flex; flex-direction: column; gap: 2px; margin-top: 5px; }
+  .manual-page-row {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; padding: 3px 6px; border-radius: 4px;
+    background: var(--white); border: 1px solid var(--gray-100);
+  }
+  .manual-page-badge {
+    background: var(--purple-light); color: var(--purple);
+    font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .manual-page-info { color: var(--gray-600); }
+  .manual-page-row.active { background: var(--purple-light); border-color: #e9d5ff; }
+
+  .check-list { display: flex; flex-direction: column; gap: 6px; }
+  .check-item { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: var(--gray-600); line-height: 1.5; }
+  .check-box {
+    width: 16px; height: 16px; border: 1.5px solid var(--gray-300);
+    border-radius: 4px; flex-shrink: 0; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .check-box.checked { background: var(--success); border-color: var(--success); color: white; font-size: 10px; }
+
+  .stat-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; border-bottom: 1px solid var(--gray-100); font-size: 12px;
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: var(--gray-500); }
+  .stat-value { font-weight: 600; color: var(--gray-800); }
+  .stat-value.green { color: var(--success); }
+  .stat-value.blue { color: var(--primary); }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--gray-400); }
+  .empty-icon { font-size: 36px; margin-bottom: 10px; }
+  .empty-text { font-size: 13px; line-height: 1.6; }
+
+  .divider-msg { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
+  .divider-msg::before, .divider-msg::after { content: ''; flex: 1; height: 1px; background: var(--gray-200); }
+  .divider-msg span { font-size: 11px; color: var(--gray-400); white-space: nowrap; }
+  .divider-msg.roleplay-divider span { color: var(--purple); }
+  .divider-msg.roleplay-divider::before, .divider-msg.roleplay-divider::after { background: #e9d5ff; }
+
+  /* NG CALLOUT */
+  .ng-card {
+    background: var(--white); border: 1.5px solid #fca5a5; border-radius: var(--radius-lg);
+    padding: 14px; margin: 4px 0;
+  }
+  .ng-label {
+    font-size: 11px; font-weight: 700; color: var(--danger);
+    background: var(--danger-light); padding: 2px 8px; border-radius: 4px;
+    display: inline-block; margin-bottom: 10px; border: 1px solid #fca5a5;
+  }
+  .ng-item { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--gray-100); }
+  .ng-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+  .ng-item-title { font-size: 13px; font-weight: 700; color: var(--gray-800); margin-bottom: 6px; }
+  .ng-row { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; line-height: 1.5; margin-bottom: 4px; }
+  .ng-badge { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 3px; flex-shrink: 0; margin-top: 1px; }
+  .ng-bad { background: var(--danger-light); color: var(--danger); }
+  .ng-good { background: var(--success-light); color: var(--success); }
+  .ng-reason { font-size: 11px; color: var(--gray-500); margin-top: 3px; font-style: italic; }
+
+  /* CONFIDENCE BUTTONS */
+  .confidence-row {
+    display: flex; gap: 6px; margin-top: 6px; align-items: center;
+    font-size: 11px; color: var(--gray-400);
+  }
+  .conf-btn {
+    font-size: 11px; padding: 4px 10px; border-radius: 14px;
+    border: 1.5px solid var(--gray-200); background: var(--white);
+    cursor: pointer; transition: all 0.15s; font-family: inherit;
+  }
+  .conf-btn.ok:hover { background: var(--success-light); border-color: var(--success); color: var(--success); }
+  .conf-btn.ng:hover { background: #fff7ed; border-color: #fb923c; color: #ea580c; }
+  .conf-btn.ok.selected { background: var(--success-light); border-color: var(--success); color: var(--success); font-weight: 700; }
+  .conf-btn.ng.selected { background: #fff7ed; border-color: #fb923c; color: #ea580c; font-weight: 700; }
+
+  /* NOTE AREA */
+  .note-textarea {
+    width: 100%; min-height: 80px; padding: 8px 10px;
+    border: 1.5px solid var(--gray-200); border-radius: var(--radius);
+    font-size: 12px; font-family: inherit; resize: vertical; outline: none;
+    line-height: 1.6; color: var(--gray-700); background: var(--gray-50);
+    transition: border-color 0.15s;
+  }
+  .note-textarea:focus { border-color: var(--primary); background: var(--white); }
+  .note-hint { font-size: 11px; color: var(--gray-400); margin-top: 5px; }
+  .note-saved { font-size: 11px; color: var(--success); margin-top: 4px; display: none; }
+  .note-saved.show { display: block; }
+
+  /* CHEATSHEET MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000; animation: fadeIn 0.15s;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal-box {
+    background: var(--white); border-radius: var(--radius-lg);
+    width: 520px; max-width: 90vw; max-height: 85vh; overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: slideUp 0.2s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-header {
+    padding: 16px 20px; border-bottom: 1px solid var(--gray-100);
+    display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--white);
+  }
+  .modal-title { font-size: 15px; font-weight: 700; color: var(--gray-900); }
+  .modal-subtitle { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+  .modal-close {
+    width: 28px; height: 28px; border-radius: 50%; border: none;
+    background: var(--gray-100); cursor: pointer; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .modal-close:hover { background: var(--gray-200); }
+  .modal-body { padding: 20px; }
+  .cs-section { margin-bottom: 20px; }
+  .cs-section-title {
+    font-size: 11px; font-weight: 700; color: var(--gray-400);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;
+  }
+  .cs-summary {
+    background: var(--primary-light); border: 1px solid #d9a8c8;
+    border-radius: 8px; padding: 12px 14px;
+    font-size: 14px; font-weight: 600; color: var(--primary); line-height: 1.5;
+  }
+  .cs-points { display: flex; flex-direction: column; gap: 6px; }
+  .cs-point {
+    display: flex; align-items: flex-start; gap: 8px;
+    font-size: 13px; color: var(--gray-700); line-height: 1.5;
+  }
+  .cs-num {
+    width: 20px; height: 20px; border-radius: 50%; background: var(--primary);
+    color: white; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+  }
+  .cs-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .cs-table th { background: var(--gray-50); padding: 6px 10px; text-align: left; font-weight: 600; color: var(--gray-600); border: 1px solid var(--gray-200); }
+  .cs-table td { padding: 6px 10px; border: 1px solid var(--gray-200); color: var(--gray-700); }
+  .cs-table tr:nth-child(even) td { background: var(--gray-50); }
+  .cs-tips { display: flex; flex-direction: column; gap: 5px; }
+  .cs-tip {
+    display: flex; gap: 6px; font-size: 12px; color: var(--gray-600);
+    padding: 5px 8px; background: var(--warning-light); border-radius: 6px;
+    border-left: 3px solid var(--warning);
+  }
+  .modal-print-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%; padding: 10px; margin-top: 4px;
+    background: var(--gray-50); border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius); font-size: 13px; font-weight: 600; color: var(--gray-600);
+    cursor: pointer; font-family: inherit; transition: all 0.15s;
+  }
+  .modal-print-btn:hover { background: var(--gray-100); }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-brand">
+    <div class="header-logo">
+      <svg width="140" height="36" viewBox="0 0 140 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Flag mark -->
+        <rect x="0" y="2" width="28" height="28" rx="2" fill="white"/>
+        <clipPath id="flag-clip"><rect x="0" y="2" width="28" height="28" rx="2"/></clipPath>
+        <g clip-path="url(#flag-clip)">
+          <line x1="0" y1="7" x2="28" y2="7" stroke="#C8003C" stroke-width="2.8"/>
+          <line x1="0" y1="12" x2="28" y2="12" stroke="#C8003C" stroke-width="2.8"/>
+          <line x1="0" y1="17" x2="28" y2="17" stroke="#C8003C" stroke-width="2.8"/>
+          <line x1="0" y1="22" x2="28" y2="22" stroke="#C8003C" stroke-width="2.8"/>
+          <line x1="0" y1="27" x2="28" y2="27" stroke="#C8003C" stroke-width="2.8"/>
+        </g>
+        <!-- ORIX text -->
+        <text x="33" y="20" font-family="Arial, sans-serif" font-size="13" font-weight="900" fill="#C8003C" letter-spacing="1">ORIX</text>
+        <!-- オリックス自動車 text -->
+        <text x="33" y="31" font-family="'Hiragino Sans', 'Yu Gothic', sans-serif" font-size="9" font-weight="700" fill="white">オリックス自動車</text>
+      </svg>
+    </div>
+    <div class="header-divider"></div>
+    <div>
+      <div class="header-title">研修トレーナー</div>
+      <div class="header-subtitle">レンタカー予約センター向け 新人教育システム</div>
+    </div>
+  </div>
+  <div class="header-badge">Demo</div>
+</header>
+
+<main class="app-main">
+  <!-- LEFT -->
+  <aside class="panel-left">
+    <div class="panel-section-title">学習テーマ</div>
+    <div class="theme-list" id="themeList"></div>
+    <div class="progress-section">
+      <div class="progress-label">学習進捗</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="overallProgress" style="width:0%"></div>
+      </div>
+      <div class="progress-count" id="progressCount">0 / 4 テーマ完了</div>
+    </div>
+  </aside>
+
+  <!-- CENTER -->
+  <section class="panel-center">
+    <div class="chat-header" id="chatHeader">
+      <div class="ai-avatar" id="chatAvatar">👩‍💼</div>
+      <div class="chat-header-info">
+        <div class="chat-header-name" id="chatHeaderName">AI研修トレーナー</div>
+        <div class="chat-header-status"><span class="status-dot" id="statusDot"></span><span id="chatHeaderStatus">オンライン ・ 業務知識特化モデル</span></div>
+      </div>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+      <div class="empty-state">
+        <div class="empty-icon">👈</div>
+        <div class="empty-text">左の<strong>学習テーマ</strong>を選択すると<br>AI講師が説明を開始します</div>
+      </div>
+    </div>
+
+    <div class="chat-input-area">
+      <div class="quick-buttons" id="quickButtons"></div>
+      <div class="mic-status" id="micStatus">🔴 録音中… 話し終えたらもう一度押してください</div>
+      <div class="input-row">
+        <button class="mic-btn" id="micBtn" onclick="toggleMic()" title="音声入力">🎤</button>
+        <textarea class="chat-input" id="chatInput" placeholder="質問を入力、または🎤で音声入力…" rows="1"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="handleSend()">➤</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT -->
+  <aside class="panel-right">
+    <div class="right-section">
+      <div class="right-section-title">📖 参照マニュアル</div>
+      <div id="manualList">
+        <div class="empty-state" style="padding:20px 0;">
+          <div class="empty-text" style="font-size:12px;">テーマを選択すると<br>関連マニュアルが表示されます</div>
+        </div>
+      </div>
+    </div>
+    <div class="right-section">
+      <div class="right-section-title">✅ 確認ポイント</div>
+      <div class="check-list" id="checkList">
+        <div style="font-size:12px;color:var(--gray-400);">テーマを選択してください</div>
+      </div>
+    </div>
+    <div class="right-section">
+      <div class="right-section-title">📊 学習サマリー</div>
+      <div class="stat-row"><span class="stat-label">現在のテーマ</span><span class="stat-value" id="currentThemeName">—</span></div>
+      <div class="stat-row"><span class="stat-label">交わした会話数</span><span class="stat-value blue" id="msgCount">0</span></div>
+      <div class="stat-row"><span class="stat-label">自信度</span><span class="stat-value" id="confidenceStat">—</span></div>
+      <div class="stat-row"><span class="stat-label">理解度チェック</span><span class="stat-value" id="quizResultStat">未実施</span></div>
+      <div class="stat-row"><span class="stat-label">ロールプレイ</span><span class="stat-value" id="roleplayStat">未実施</span></div>
+      <div class="stat-row"><span class="stat-label">完了テーマ数</span><span class="stat-value green" id="doneCount">0 / 4</span></div>
+    </div>
+    <div class="right-section" id="noteSection" style="display:none;">
+      <div class="right-section-title">📝 学習メモ</div>
+      <textarea class="note-textarea" id="noteArea" placeholder="気づいたことや覚えておきたいことをメモ…&#10;（例: 保険確認は最初！忘れがち）" oninput="saveNote()"></textarea>
+      <div class="note-hint">メモはテーマごとに保存されます</div>
+      <div class="note-saved" id="noteSaved">✓ 保存しました</div>
+    </div>
+  </aside>
+</main>
+
+<!-- CHEATSHEET MODAL -->
+<div class="modal-overlay" id="csModal" style="display:none;" onclick="closeCheatsheet(event)">
+  <div class="modal-box" id="csBox">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="csTitle">チートシート</div>
+        <div class="modal-subtitle">📌 電話中に見られるクイックリファレンス</div>
+      </div>
+      <button class="modal-close" onclick="closeCheatsheet()">✕</button>
+    </div>
+    <div class="modal-body" id="csBody"></div>
+  </div>
+</div>
+
+<script>
+// ====================================================
+// DATA
+// ====================================================
+const THEMES = [
+  {
+    id: 'daisha',
+    icon: '🔄',
+    name: '代車予約受付',
+    desc: '修理中の代車手配フロー',
+    manuals: [
+      {
+        title: '代車予約受付マニュアル', desc: 'v2.3 ｜ 2024年改訂版', highlight: true,
+        pages: [
+          { id: 'dm1', page: 1, section: '第1章', title: '業務概要・目的', lines: '1〜8行目' },
+          { id: 'dm2', page: 3, section: '第2章', title: '受付フロー全体', lines: '1〜15行目' },
+          { id: 'dm3', page: 5, section: '第2章', title: '保険確認手順', lines: '16〜28行目' },
+          { id: 'dm4', page: 7, section: '第3章', title: 'トラブル・延長対応', lines: '1〜12行目' },
+        ]
+      },
+      {
+        title: '代車車種・在庫管理規則', desc: '店舗別在庫確認手順',
+        pages: [
+          { id: 'dm5', page: 2, section: '第1章', title: '車種クラス一覧', lines: '全ページ' },
+          { id: 'dm6', page: 4, section: '第2章', title: '在庫確認システム操作', lines: '3〜19行目' },
+        ]
+      },
+      {
+        title: '保険適用確認チェックシート', desc: '自動車保険の代車特約',
+        pages: [
+          { id: 'dm7', page: 1, section: '—', title: '特約確認項目チェックリスト', lines: '全項目' },
+        ]
+      },
+    ],
+    checkPoints: ['顧客名・連絡先の確認','修理期間の確認（開始・終了予定）','必要車種・サイズの確認','保険適用（代車特約）の有無','運転免許証の確認','料金説明・署名取得'],
+    intro: `こんにちは！本日は【代車予約受付】の業務について一緒に学びましょう。
+
+【業務の全体像】
+代車とは、お客様の車が修理・車検等で入庫中に一時的に貸し出す車両です。スムーズな手配が顧客満足度に直結する重要業務です。
+
+【受付の主なフロー】
+・お客様情報の確認（氏名・連絡先・免許証）
+・修理期間の確認（いつからいつまで必要か）
+・必要車種の確認（クラス・ミッション種別）
+・保険適用の確認（代車特約の有無）
+・在庫確認・手配
+・料金説明と確認書への署名
+
+【よくある問題】
+保険の代車特約有無の確認を忘れるケースが多いです。必ず最初に確認しましょう。
+
+何か質問はありますか？下のボタンから質問することもできます。`,
+    qas: {
+      '代車予約の受付手順を教えて': {
+        answer: `【結論】
+代車受付は「確認→手配→説明→署名」の4ステップで進めます。
+
+【手順】
+・お客様名・連絡先・免許証番号を確認
+・修理開始日・終了予定日を確認
+・必要な車種・グレードを確認
+・保険（代車特約）の適用可否を確認
+・システムで在庫を確認・仮押さえ
+・料金を案内し、貸渡確認書に署名取得
+
+【注意点】
+・修理期間が延長する場合の対応方針も伝える
+・保険適用外の場合は事前に有料である旨を必ず説明する
+・免許証の有効期限も確認すること`,
+        citations: [
+          { manual: '代車予約受付マニュアル', page: 3, section: '第2章', title: '受付フロー全体', lines: '1〜15行目' },
+          { manual: '代車予約受付マニュアル', page: 5, section: '第2章', title: '保険確認手順', lines: '16〜28行目' },
+        ]
+      },
+      '代車で確認すべき項目は？': {
+        answer: `【結論】
+5項目を必ず確認します。抜け漏れはクレームの原因になります。
+
+【手順】
+・①氏名・連絡先（緊急時の連絡先も）
+・②運転免許証（本人確認・有効期限）
+・③修理期間（開始日・終了予定日）
+・④必要な車種・サイズ（クラス確認）
+・⑤保険の代車特約有無（保険証券番号）
+
+【注意点】
+・修理が延長した場合に連絡が取れる番号を必ず控える
+・法人名義の場合は担当者名と社印の確認も必要`,
+        citations: [
+          { manual: '代車予約受付マニュアル', page: 3, section: '第2章', title: '受付フロー全体', lines: '1〜15行目' },
+          { manual: '保険適用確認チェックシート', page: 1, section: '—', title: '特約確認項目チェックリスト', lines: '全項目' },
+        ]
+      },
+      '保険について詳しく教えて': {
+        answer: `【結論】
+代車特約がある場合は費用負担なし、ない場合は実費（1日2,000〜4,000円程度）が発生します。
+
+【手順】
+・保険会社名と証券番号を確認
+・「代車費用補償特約」または「レンタカー費用特約」の有無を確認
+・補償金額の上限（1日あたり・日数上限）を確認
+・特約がない場合は有料プランの案内へ
+
+【注意点】
+・保険会社へ直接確認を促す場合もある
+・特約があっても免責金額が発生する場合あり
+・保険会社への請求手続きはお客様自身が行う`,
+        citations: [
+          { manual: '代車予約受付マニュアル', page: 5, section: '第2章', title: '保険確認手順', lines: '16〜28行目' },
+          { manual: '保険適用確認チェックシート', page: 1, section: '—', title: '特約確認項目チェックリスト', lines: '全項目' },
+        ]
+      },
+    },
+    quiz: {
+      question: '代車予約受付で、最初に必ず確認すべき重要項目はどれですか？',
+      options: ['車のカラー・グレード', '保険の代車特約有無と免許証', '修理工場の担当者名', '希望するカーナビの種類'],
+      correct: 1,
+      explanation: '正解です！保険の代車特約有無を最初に確認することで、有料・無料の区別が明確になり、後のトラブルを防げます。免許証は本人確認のため最初に必要です。',
+      wrongExplanation: '残念！最初に確認すべきは「保険の代車特約有無」と「運転免許証」です。特約の有無で費用負担が変わるため、お客様への説明が変わります。',
+    },
+    roleplay: {
+      scenario: 'ロールプレイを開始します。私（AI）が保険会社の担当者役を演じます。\n保険会社から代車依頼の電話が来る想定です。あなたは予約センタースタッフとして対応してください。\n\n準備ができたら「開始」と入力してください。',
+      opening: 'もしもし、東京海上日動の田中と申します。お客様の鈴木様の車が本日から修理入庫になりまして、代車の手配をお願いしたいのですが、よろしいでしょうか？',
+      followUps: [
+        { keywords: ['期間','いつ','何日','修理'], text: '修理期間は約2週間を予定しております。本日から2週間後の返却予定です。' },
+        { keywords: ['車種','クラス','サイズ','何がいい'], text: 'できれば軽自動車かコンパクトカーでお願いします。鈴木様は軽自動車をお使いですので。' },
+        { keywords: ['保険','特約','補償','費用'], text: 'レンタカー費用補償特約がついています。1日最大5,000円、30日まで補償です。証券番号はTK-2024-98765です。' },
+        { keywords: ['免許','本人','鈴木','連絡先'], text: '鈴木様の連絡先は090-1234-5678です。免許証番号はご本人に直接確認いただいた方がよいでしょうか？' },
+      ],
+      defaultReply: '少々お待ちください、確認します。他にご確認したいことはございますか？',
+      evalCriteria: [
+        { text: '保険会社名と担当者名を確認した', keywords: ['東京海上','田中','保険会社','どちら様'] },
+        { text: '被保険者（鈴木様）の連絡先を確認した', keywords: ['連絡先','電話番号','鈴木'] },
+        { text: '修理期間（開始・終了）を確認した', keywords: ['期間','いつ','何日','いつまで'] },
+        { text: '代車特約の補償内容を確認した', keywords: ['特約','補償','保険','証券'] },
+        { text: '必要な車種・クラスを確認した', keywords: ['車種','クラス','軽','コンパクト'] },
+      ]
+    },
+    cheatsheet: {
+      summary: '保険確認が最優先！代車は「確認→手配→説明→署名」の順で進める',
+      points: [
+        '保険の代車特約有無を最初に確認（費用負担の有無が決まる）',
+        '修理期間（開始日・終了予定日）を必ず確認',
+        '運転免許証の有効期限も確認すること',
+        '修理延長の可能性がある場合は連絡先を二重確認',
+        '貸渡確認書への署名を忘れずに取得',
+      ],
+      table: [
+        ['確認項目', '内容', '備考'],
+        ['①氏名・連絡先', 'フルネーム＋携帯番号', '緊急連絡先も'],
+        ['②免許証', '本人確認・有効期限', '必須'],
+        ['③修理期間', '開始日〜終了予定日', '延長の可能性も確認'],
+        ['④保険特約', '代車費用補償特約の有無', '証券番号も控える'],
+        ['⑤車種・クラス', 'クラス・AT/MT', '在庫確認後に確定'],
+      ],
+      tips: [
+        '保険特約あり → 費用0円、なし → 1日2,000〜4,000円と案内',
+        '修理が延びた場合の連絡先を必ず2箇所確認',
+        '免許の有効期限が切れていたら受付不可（その場で丁寧に説明）',
+      ]
+    },
+    ngExamples: [
+      {
+        title: 'NG① 保険確認なしで料金を言う',
+        bad: '「代車料金は1日3,000円です」と先に言う',
+        good: '「まず保険の代車特約の有無を確認させてください」と先に聞く',
+        reason: '特約があれば無料なのに有料と伝えてしまいクレームになる'
+      },
+      {
+        title: 'NG② 修理期間を確認しないまま在庫を押さえる',
+        bad: '「分かりました、手配します」と期間未確認で進める',
+        good: '「修理はいつからいつまでの予定でしょうか？」と必ず確認',
+        reason: '期間不明のまま手配すると車両が長期拘束され他の予約に影響'
+      },
+      {
+        title: 'NG③ 免許証確認を後回しにする',
+        bad: '「後で持ってきてください」と受付を完了させる',
+        good: '受付時に必ず本人確認・有効期限確認を完了させる',
+        reason: '有効期限切れ・紛失などが後から判明すると貸出不可になりトラブル'
+      },
+    ],
+  },
+  {
+    id: 'hojin',
+    icon: '🏢',
+    name: '法人会員のレンタカー予約',
+    desc: '法人契約・請求書払いフロー',
+    manuals: [
+      {
+        title: '法人会員規約・特典一覧', desc: 'v3.1 ｜ 割引・請求書払い', highlight: true,
+        pages: [
+          { id: 'hm1', page: 1, section: '第1章', title: '法人会員制度概要', lines: '1〜10行目' },
+          { id: 'hm2', page: 4, section: '第2章', title: '法人予約受付手順', lines: '1〜20行目' },
+          { id: 'hm3', page: 6, section: '第3章', title: '割引・特典一覧', lines: '全ページ' },
+          { id: 'hm4', page: 8, section: '第4章', title: '請求書払い条件', lines: '1〜15行目' },
+        ]
+      },
+      {
+        title: '法人与信審査手順書', desc: '新規法人登録フロー',
+        pages: [
+          { id: 'hm5', page: 2, section: '第1章', title: '与信審査フロー', lines: '全ページ' },
+          { id: 'hm6', page: 5, section: '第2章', title: '与信上限管理', lines: '8〜22行目' },
+        ]
+      },
+      {
+        title: '月次請求書発行マニュアル', desc: '経理部向け連携手順',
+        pages: [
+          { id: 'hm7', page: 3, section: '第2章', title: '月次締め処理手順', lines: '1〜18行目' },
+        ]
+      },
+    ],
+    checkPoints: ['法人会員番号・契約状況の確認','担当者名と使用目的の確認','車種・台数・利用期間の確認','請求先（個人/法人）の確認','法人割引の適用確認','利用者の免許証確認'],
+    intro: `本日は【法人会員のレンタカー予約】について学びましょう。
+
+【業務の全体像】
+法人会員は個人会員と異なる特別プランが適用されます。請求書払い・法人割引・複数台同時手配など、法人特有のフローを正確に処理することが重要です。
+
+【法人予約の主な特徴】
+・法人割引（通常5〜15%オフ）が適用される場合がある
+・請求書払い（月次まとめ払い）が可能
+・複数名・複数台の同時予約が多い
+・利用目的（営業・出張等）の記録が必要な場合がある
+
+【個人予約との主な違い】
+・会員番号に加えて法人コードの確認が必要
+・請求先を「個人」か「法人」か都度確認
+・法人与信限度額の確認が必要なケースがある
+
+何か質問があれば、ボタンから選択してください！`,
+    qas: {
+      '法人予約で確認する項目は？': {
+        answer: `【結論】
+法人予約では「法人コード＋担当者情報＋請求先確認」の3点が個人予約と異なる重要確認事項です。
+
+【手順】
+・法人会員番号・法人コードを確認
+・予約担当者名（法人内の連絡窓口）を確認
+・実際の運転者氏名と免許証を確認
+・利用期間・車種・台数を確認
+・請求先を「法人」か「個人精算」か確認
+・法人割引の適用有無を確認
+・利用目的（業務区分）の記録
+
+【注意点】
+・担当者と運転者が異なる場合が多い（両方確認）
+・与信限度額を超える場合は要事前確認
+・法人によっては利用規定で車種制限あり`,
+        citations: [
+          { manual: '法人会員規約・特典一覧', page: 4, section: '第2章', title: '法人予約受付手順', lines: '1〜20行目' },
+          { manual: '法人与信審査手順書', page: 5, section: '第2章', title: '与信上限管理', lines: '8〜22行目' },
+        ]
+      },
+      '法人と個人予約の違いは？': {
+        answer: `【結論】
+支払い方法・確認項目・割引適用の3点が主な違いです。
+
+【手順】
+＜個人予約＞
+・本人確認のみ
+・クレジットカード即時決済
+・個人割引（メンバー区分）
+
+＜法人予約＞
+・法人コード＋担当者の二重確認
+・請求書払い（月次）または法人カード払い
+・法人契約割引（別途料率あり）
+・利用目的の記録が必要な場合あり
+
+【注意点】
+・法人カードで支払う場合でも法人コードの確認は必須
+・請求書払いの場合、与信上限に達していないか確認`,
+        citations: [
+          { manual: '法人会員規約・特典一覧', page: 1, section: '第1章', title: '法人会員制度概要', lines: '1〜10行目' },
+          { manual: '法人会員規約・特典一覧', page: 6, section: '第3章', title: '割引・特典一覧', lines: '全ページ' },
+        ]
+      },
+      '請求書払いの手順を教えて': {
+        answer: `【結論】
+請求書払いは法人与信が確認済みの会員のみ利用可能です。月末締め翌月払いが基本です。
+
+【手順】
+・法人コードで与信ステータスを確認（システムで確認）
+・与信OK → 請求書払いフラグをONに設定
+・車両返却後、システムで請求データを確定
+・月末に経理部が一括請求書を発行
+・法人の経理部門へ請求書送付（メール or 郵送）
+・入金確認後にシステムで消込処理
+
+【注意点】
+・与信上限超過の場合は必ず事前に上長へ報告
+・請求書送付先（部署・担当者名）は都度確認
+・支払サイトは法人によって異なる場合あり（30日・60日等）`,
+        citations: [
+          { manual: '法人会員規約・特典一覧', page: 8, section: '第4章', title: '請求書払い条件', lines: '1〜15行目' },
+          { manual: '月次請求書発行マニュアル', page: 3, section: '第2章', title: '月次締め処理手順', lines: '1〜18行目' },
+          { manual: '法人与信審査手順書', page: 2, section: '第1章', title: '与信審査フロー', lines: '全ページ' },
+        ]
+      },
+    },
+    quiz: {
+      question: '法人予約で個人予約と異なる重要確認事項はどれですか？',
+      options: ['好みの車のカラー', '法人コードと請求先の確認', '自宅住所', 'ETCカードの要否'],
+      correct: 1,
+      explanation: '正解です！法人予約では「法人コード」と「請求先（法人払いか個人精算か）」の確認が個人予約にはない重要なポイントです。',
+      wrongExplanation: '残念！法人予約で最も重要な追加確認事項は「法人コード」と「請求先（法人払いか個人精算か）」です。これを確認しないと請求トラブルの原因になります。',
+    },
+    roleplay: {
+      scenario: 'ロールプレイを開始します。私（AI）が法人会員の担当者役を演じます。\nある会社の総務部から法人予約の電話が来る想定です。あなたは予約センタースタッフとして対応してください。\n\n準備ができたら「開始」と入力してください。',
+      opening: 'こんにちは、株式会社オフィスプロの佐藤と申します。法人でレンタカーを借りたいのですが、来週の月曜日から3日間、2台予約できますか？',
+      followUps: [
+        { keywords: ['法人番号','会員番号','コード'], text: '法人番号はHJ-0045です。昨年から使っています。' },
+        { keywords: ['運転者','ドライバー','誰が'], text: '運転するのは山田と田中の2名です。免許証番号は後ほどお伝えできます。' },
+        { keywords: ['車種','クラス','何が'], text: '一台はセダンか中型車、もう一台は軽自動車でお願いします。' },
+        { keywords: ['請求','支払い','精算'], text: '請求書払いでお願いします。毎月使っているのでまとめて処理したいです。' },
+        { keywords: ['目的','用途','何のため'], text: '営業訪問と出張移動です。業務利用になります。' },
+      ],
+      defaultReply: 'はい、分かりました。他に確認することはありますか？',
+      evalCriteria: [
+        { text: '法人会員番号・法人コードを確認した', keywords: ['法人番号','番号','HJ','コード'] },
+        { text: '運転者（実際に運転する人）の確認をした', keywords: ['運転','ドライバー','運転者','山田','田中'] },
+        { text: '利用期間・台数を正確に確認した', keywords: ['3日','月曜','2台','期間','台'] },
+        { text: '請求先（法人か個人か）を確認した', keywords: ['請求','支払','精算','法人払','請求書'] },
+        { text: '利用目的を確認・記録した', keywords: ['目的','用途','業務','営業','出張'] },
+      ]
+    },
+    cheatsheet: {
+      summary: '法人予約は「法人コード＋担当者確認＋請求先確認」が個人予約との3大違い',
+      points: [
+        '法人コードは必ず最初に確認（個人会員番号とは別）',
+        '担当者（予約者）と実際の運転者が異なる場合が多い',
+        '請求先を「法人」か「個人精算」か毎回確認',
+        '与信限度額を超える場合は必ず上長確認',
+        '利用目的（業務区分）を記録する',
+      ],
+      table: [
+        ['比較項目', '個人予約', '法人予約'],
+        ['本人確認', '免許証のみ', '法人コード＋担当者'],
+        ['支払方法', 'クレカ即時', '請求書払い or 法人カード'],
+        ['割引', '個人メンバー区分', '法人契約割引率（別途）'],
+        ['利用目的', '不要', '記録が必要な場合あり'],
+      ],
+      tips: [
+        '担当者＝運転者 とは限らない！両方確認を忘れずに',
+        '与信ステータスはシステムで必ず確認してから請求書払いOKと言う',
+        '法人カード払いでも法人コード確認は必須',
+      ]
+    },
+    ngExamples: [
+      {
+        title: 'NG① 担当者＝運転者と思い込む',
+        bad: '予約した田中さんがそのまま運転すると思って手続きを進める',
+        good: '「実際に運転される方のお名前と免許証もご確認させてください」と確認',
+        reason: '運転者不明のまま貸し出すと事故時の保険適用でトラブルになる'
+      },
+      {
+        title: 'NG② 与信確認なしに請求書払いをOKする',
+        bad: '「法人さんなので請求書払いで大丈夫ですよ」と即答する',
+        good: 'システムで与信ステータスを確認してから「請求書払い可能です」と案内',
+        reason: '与信限度額超過の場合に回収できなくなりリスクが発生する'
+      },
+      {
+        title: 'NG③ 請求先を確認しない',
+        bad: '「法人なので法人払いだろう」と思い込んで進める',
+        good: '「今回の請求は法人請求でよろしいですか、それとも個人精算でしょうか？」と毎回確認',
+        reason: '担当者が個人立替で精算したいケースがあり、後から変更できない場合がある'
+      },
+    ],
+  },
+  {
+    id: 'pet',
+    icon: '🐾',
+    name: 'ペット同乗可否の案内',
+    desc: '動物種別・条件付き対応フロー',
+    manuals: [
+      {
+        title: 'ペット同乗ルール・FAQ', desc: 'v1.8 ｜ 動物種別一覧付き', highlight: true,
+        pages: [
+          { id: 'pm1', page: 1, section: '第1章', title: '基本方針・対応姿勢', lines: '1〜8行目' },
+          { id: 'pm2', page: 2, section: '第2章', title: '動物種別可否一覧', lines: '全ページ' },
+          { id: 'pm3', page: 4, section: '第3章', title: 'うさぎ・小動物の扱い', lines: '5〜18行目' },
+          { id: 'pm4', page: 5, section: '第3章', title: '大型犬（30kg以上）の対応', lines: '19〜30行目' },
+        ]
+      },
+      {
+        title: '車内汚損時の追加料金規程', desc: 'クリーニング費用基準',
+        pages: [
+          { id: 'pm5', page: 1, section: '—', title: 'ペット汚損クリーニング料金表', lines: '全ページ' },
+        ]
+      },
+      {
+        title: '店舗別ペット対応状況一覧', desc: '2024年6月更新',
+        pages: [
+          { id: 'pm6', page: 1, section: '—', title: '店舗別対応可否マップ', lines: '全ページ' },
+        ]
+      },
+    ],
+    checkPoints: ['ペットの種類・大きさの確認','ケージの有無・サイズの確認','利用店舗のペット対応可否確認','追加クリーニング料金の説明','禁止事項（座席上乗せ等）の説明','独断判断せず規約・上長確認'],
+    intro: `本日は【ペット同乗可否の案内】について学びましょう。
+
+【業務の全体像】
+ペットを同乗させたいお客様からの問い合わせは非常に多い案件です。「何でも可」でも「全て不可」でもなく、条件を正確に確認した上で適切に案内することが重要です。
+
+【ペット同乗の基本ルール】
+・原則として犬・猫は条件付きで可（ケージ必須）
+・うさぎ・小鳥等の小動物は原則不可（店舗判断）
+・爬虫類・大型犬（30kg以上）は基本不可
+・ペット可の車種が限られる場合あり
+
+【対応の基本姿勢】
+「可能/不可能」を独断で伝えることは厳禁です。必ず規約とマニュアルを確認し、不明な場合は上長または専門窓口に確認してから回答してください。
+
+下のボタンで詳しい内容を確認しましょう！`,
+    qas: {
+      'ペットでうさぎは同乗できますか？': {
+        answer: `【結論】
+うさぎは原則同乗不可です。ただしケージ利用など条件付きで対応可能な場合があります。
+
+【手順】
+・ペット種別の確認（うさぎ、サイズ、頭数）
+・ケージの有無・サイズを確認
+・利用予定の店舗のペット対応状況を確認（システム検索）
+・対応可能な場合：クリーニング料金（別途3,000〜5,000円）を説明
+・不明な場合：「確認して折り返す」と案内し上長へ
+
+【注意点】
+・独断で「大丈夫です」と答えるのは絶対NG
+・必ず店舗の規約・在庫状況を確認してから回答
+・アレルギー等の観点から翌日以降の貸出に影響する場合あり`,
+        citations: [
+          { manual: 'ペット同乗ルール・FAQ', page: 2, section: '第2章', title: '動物種別可否一覧', lines: '全ページ' },
+          { manual: 'ペット同乗ルール・FAQ', page: 4, section: '第3章', title: 'うさぎ・小動物の扱い', lines: '5〜18行目' },
+          { manual: '車内汚損時の追加料金規程', page: 1, section: '—', title: 'ペット汚損クリーニング料金表', lines: '全ページ' },
+        ]
+      },
+      'ペット同乗で注意することは？': {
+        answer: `【結論】
+「独断で可否を判断しない」ことが最重要です。確認してから回答する姿勢を徹底してください。
+
+【手順】
+・ペット種類・サイズの確認（犬猫以外は特に慎重に）
+・ケージ持参有無の確認（必須条件の場合あり）
+・車種選定（ペット可のワゴン・SUV系が多い）
+・クリーニング費用の事前説明（必須）
+・禁止事項の案内（座席上乗せ・助手席乗せ等）
+・返却時の車内状況確認ルールの説明
+
+【注意点】
+・爬虫類・害虫リスクのある動物は基本不可
+・次の予約者への影響を考慮した清掃が必要
+・お客様がルール違反をした場合の追加料金も事前説明`,
+        citations: [
+          { manual: 'ペット同乗ルール・FAQ', page: 1, section: '第1章', title: '基本方針・対応姿勢', lines: '1〜8行目' },
+          { manual: '車内汚損時の追加料金規程', page: 1, section: '—', title: 'ペット汚損クリーニング料金表', lines: '全ページ' },
+        ]
+      },
+      '大型犬は同乗できますか？': {
+        answer: `【結論】
+大型犬（概ね30kg以上）は原則不可です。中型犬までは条件付きで可能です。
+
+【手順】
+・犬の種類・体重・頭数を確認
+・30kg未満：ケージ利用・ペット可車種での受付を検討
+・30kg以上：基本的に断りの案内
+・断る場合：「規約上お断りしております」と丁寧に説明
+・代替案（ペット専用移送サービス等）を案内できると加点
+
+【注意点】
+・体重は目安。実際の体格も確認が必要な場合あり
+・独断での受付は絶対にしない
+・予約後のトラブル（車内汚損・破損）を防ぐため事前説明徹底`,
+        citations: [
+          { manual: 'ペット同乗ルール・FAQ', page: 2, section: '第2章', title: '動物種別可否一覧', lines: '全ページ' },
+          { manual: 'ペット同乗ルール・FAQ', page: 5, section: '第3章', title: '大型犬（30kg以上）の対応', lines: '19〜30行目' },
+        ]
+      },
+    },
+    quiz: {
+      question: 'ペット同乗の可否について、新人スタッフが絶対にやってはいけないことはどれですか？',
+      options: ['お客様にケージの有無を確認する', 'ペット種別を丁寧に確認する', '規約を確認せず独断で「大丈夫です」と答える', '上長に確認してから回答する'],
+      correct: 2,
+      explanation: '正解です！規約確認なしの独断回答は絶対NGです。ペット同乗は車両の状態・他のお客様への影響・規約等の複合的な判断が必要なため、必ず確認してから回答します。',
+      wrongExplanation: '残念！絶対にやってはいけないのは「規約を確認せずに独断で可否を答えること」です。ペット同乗は複合的な判断が必要で、独断回答はトラブルの原因になります。',
+    },
+    roleplay: {
+      scenario: 'ロールプレイを開始します。私（AI）がお客様役を演じます。\nペットの同乗について問い合わせの電話が来る想定です。あなたは予約センタースタッフとして対応してください。\n\n準備ができたら「開始」と入力してください。',
+      opening: 'あの〜、今度レンタカーを借りたいんですが、うさぎを連れて行きたいんです。うさぎって乗せても大丈夫ですか？ケージは持ってます。',
+      followUps: [
+        { keywords: ['サイズ','大き','体重','何キロ'], text: '2kgのミニウサギです。ケージに入れて移動させます。' },
+        { keywords: ['店舗','どこ','場所','どちら'], text: '新宿店を使いたいと思っています。' },
+        { keywords: ['料金','クリーニング','費用','追加'], text: 'えっ、追加料金がかかるんですか？いくらくらいですか？' },
+        { keywords: ['確認','調べ','折り返','上長'], text: 'そうですか、分かりました。いつ頃折り返しもらえますか？' },
+      ],
+      defaultReply: 'そうですか…他に何か必要なことはありますか？',
+      evalCriteria: [
+        { text: 'ペットの種類・サイズを確認した', keywords: ['種類','サイズ','大き','体重','ミニウサギ'] },
+        { text: 'ケージの有無を確認した', keywords: ['ケージ','ゲージ','ケース'] },
+        { text: '独断で「大丈夫」と言わなかった（規約確認姿勢）', keywords: ['確認','調べ','折り返','規約','マニュアル','上長'], negate: true, bad: ['大丈夫','問題ない','OK','オーケー'] },
+        { text: '追加クリーニング料金を案内した', keywords: ['クリーニング','料金','費用','追加'] },
+        { text: '店舗確認または折り返し対応を提案した', keywords: ['店舗','確認','折り返','後ほど'] },
+      ]
+    },
+    cheatsheet: {
+      summary: '独断でNG！必ず確認してから回答。ペット種別→ケージ→店舗ルール→料金説明の順',
+      points: [
+        '絶対に独断で可否を答えない（規約確認が必須）',
+        '犬猫はケージあれば条件付き可、うさぎ等小動物は店舗判断',
+        '30kg超の大型犬は原則不可',
+        '追加クリーニング料金（3,000〜5,000円）を事前説明',
+        '不明な場合は「折り返し確認」で上長へ',
+      ],
+      table: [
+        ['ペット種別', '可否', '条件'],
+        ['犬（〜30kg未満）', '条件付き可', 'ケージ必須、ペット可車種'],
+        ['猫', '条件付き可', 'ケージ必須'],
+        ['うさぎ・小鳥', '店舗判断', 'ケージあっても要確認'],
+        ['大型犬（30kg以上）', '原則不可', '基本お断り'],
+        ['爬虫類', '不可', '全店舗不可'],
+      ],
+      tips: [
+        'まず「ケージはお持ちですか？」から聞く→種別→店舗確認の順が自然',
+        'クリーニング料金は先に伝える（後から言うとクレームになる）',
+        '判断に迷ったら「少々お待ちください、確認いたします」→上長へ',
+      ]
+    },
+    ngExamples: [
+      {
+        title: 'NG① 「うさぎOKですよ」と即答する',
+        bad: '「ケージがあれば大丈夫ですよ！」と確認なしに答える',
+        good: '「一度規約と店舗の対応状況を確認させてください。折り返しご連絡してもよいでしょうか？」',
+        reason: 'うさぎは店舗によって判断が異なる。独断回答→後から断る→クレームのパターンが多い'
+      },
+      {
+        title: 'NG② クリーニング料金を後から伝える',
+        bad: '受付を完了させた後に「追加料金が必要でした」と連絡する',
+        good: '受付時に「ペット同乗の場合、返却後に別途クリーニング料金（3,000〜5,000円）がかかります」と説明',
+        reason: '後から追加請求するとクレームの原因になる。事前説明が義務'
+      },
+      {
+        title: 'NG③ 禁止事項を説明しない',
+        bad: '「ケージがあればOKです」だけ言って貸し出す',
+        good: '「座席への乗せ上げ・助手席への乗車は禁止です」「返却時の車内確認があります」も伝える',
+        reason: '禁止事項未説明→違反発生→追加料金トラブルの原因になる'
+      },
+    ],
+  },
+  {
+    id: 'cancel',
+    icon: '📋',
+    name: '予約変更・キャンセル対応',
+    desc: 'キャンセル料・変更フロー',
+    manuals: [
+      {
+        title: 'キャンセルポリシー規程', desc: 'v4.0 ｜ 料率表付き', highlight: true,
+        pages: [
+          { id: 'cm1', page: 1, section: '第1章', title: 'キャンセル料料率表', lines: '全ページ' },
+          { id: 'cm2', page: 3, section: '第2章', title: 'キャンセル処理手順', lines: '1〜18行目' },
+          { id: 'cm3', page: 5, section: '第3章', title: '特例・免除条件', lines: '1〜12行目' },
+          { id: 'cm4', page: 6, section: '第3章', title: '繁忙期特別料率', lines: '13〜22行目' },
+        ]
+      },
+      {
+        title: '予約変更手順マニュアル', desc: 'システム操作ガイド',
+        pages: [
+          { id: 'cm5', page: 2, section: '第1章', title: '変更受付フロー', lines: '全ページ' },
+          { id: 'cm6', page: 4, section: '第2章', title: 'システム操作手順', lines: '3〜25行目' },
+        ]
+      },
+      {
+        title: '天災・不可抗力時の特例規定', desc: '免除条件の判断基準',
+        pages: [
+          { id: 'cm7', page: 1, section: '—', title: '特例適用判断フローチャート', lines: '全ページ' },
+        ]
+      },
+    ],
+    checkPoints: ['予約番号・お客様情報の確認','キャンセル・変更の理由確認','キャンセル料の計算・説明','変更の場合：新しい日時・車種の確認','返金方法・タイミングの説明','天災等の特例対象か確認'],
+    intro: `本日は【予約変更・キャンセル対応】について学びましょう。
+
+【業務の全体像】
+予約変更とキャンセルは毎日大量に発生する業務です。特にキャンセル料の計算を誤ると大きなトラブルになるため、ポリシーの完全な理解が必要です。
+
+【キャンセル料の基本】
+・7日前以降：予約金額の20%
+・3日前以降：予約金額の40%
+・前日：予約金額の60%
+・当日：予約金額の80%
+・無連絡不参加（ノーショー）：100%
+
+【変更対応の基本】
+・変更は基本的に出発24時間前まで無料
+・変更により車種グレードが上がる場合は差額請求
+・繁忙期（GW・お盆・年末年始）は特別規定あり
+
+【重要】
+お客様が感情的になる場面が多いです。まず「お気持ちを受け止める」姿勢で対応しましょう。
+
+下のボタンで詳しく確認しましょう！`,
+    qas: {
+      'キャンセル時の注意点は？': {
+        answer: `【結論】
+キャンセル料を正確に計算し、お客様に事前了承を得てから処理することが最重要です。
+
+【手順】
+・予約番号でお客様情報・予約内容を確認
+・キャンセル理由を確認（天災等の特例該当か判断）
+・キャンセル日からの日数を計算し料金を確定
+・お客様に金額を説明し了承を取得
+・システムでキャンセル処理を実行
+・返金方法（クレカ返金・振込）とタイミングを説明
+
+【注意点】
+・感情的なお客様には先に謝罪・共感を示す
+・「料金が発生する前にシステム処理する」順番を絶対に守る
+・天災・交通障害等の特例は上長確認が必要
+・返金反映まで3〜10営業日かかることを説明`,
+        citations: [
+          { manual: 'キャンセルポリシー規程', page: 3, section: '第2章', title: 'キャンセル処理手順', lines: '1〜18行目' },
+          { manual: 'キャンセルポリシー規程', page: 5, section: '第3章', title: '特例・免除条件', lines: '1〜12行目' },
+        ]
+      },
+      'キャンセル料の計算方法は？': {
+        answer: `【結論】
+キャンセルまでの日数によって料率が変わります。料率表を必ず確認してから案内します。
+
+【手順】
+＜料率表＞
+・8日前まで：無料
+・7〜4日前：予約金額の20%
+・3〜2日前：予約金額の40%
+・前日：予約金額の60%
+・当日連絡あり：予約金額の80%
+・ノーショー（無連絡）：100%
+
+計算例：
+予約金額30,000円、2日前キャンセル
+→ 30,000円 × 40% = 12,000円
+
+【注意点】
+・「何日前」は出発日を基準に数える（受付日ではない）
+・オプション料金もキャンセル料の対象になる場合あり
+・GW・年末年始は特別料率（1日前から80%等）`,
+        citations: [
+          { manual: 'キャンセルポリシー規程', page: 1, section: '第1章', title: 'キャンセル料料率表', lines: '全ページ' },
+          { manual: 'キャンセルポリシー規程', page: 6, section: '第3章', title: '繁忙期特別料率', lines: '13〜22行目' },
+        ]
+      },
+      '予約変更の手順を教えて': {
+        answer: `【結論】
+変更は出発24時間前まで原則無料。システムで既存予約を修正し、差額があれば精算します。
+
+【手順】
+・予約番号でお客様情報を確認
+・変更内容（日時・車種・オプション）を確認
+・システムで空き状況を確認
+・差額計算（グレードアップ等）
+・お客様に変更内容と差額を説明・了承取得
+・システムで予約変更処理を実行
+・変更完了の確認メール送信
+
+【注意点】
+・繁忙期は変更不可のプランもある（事前確認必須）
+・グレードダウンの場合の返金ポリシーも確認
+・複数回変更したお客様は履歴に残しておく`,
+        citations: [
+          { manual: '予約変更手順マニュアル', page: 2, section: '第1章', title: '変更受付フロー', lines: '全ページ' },
+          { manual: '予約変更手順マニュアル', page: 4, section: '第2章', title: 'システム操作手順', lines: '3〜25行目' },
+          { manual: 'キャンセルポリシー規程', page: 1, section: '第1章', title: 'キャンセル料料率表', lines: '全ページ' },
+        ]
+      },
+    },
+    quiz: {
+      question: 'レンタカーの予約を「出発前日」にキャンセルした場合、キャンセル料は予約金額の何%ですか？',
+      options: ['20%', '40%', '60%', '100%'],
+      correct: 2,
+      explanation: '正解です！前日キャンセルは60%です。料率は7日前〜:20%、3日前〜:40%、前日:60%、当日:80%、ノーショー:100%と覚えましょう。',
+      wrongExplanation: '残念！前日キャンセルのキャンセル料は60%です。料率表：7日前〜:20%、3日前〜:40%、前日:60%、当日:80%、ノーショー:100%',
+    },
+    roleplay: {
+      scenario: 'ロールプレイを開始します。私（AI）がお客様役を演じます。\nキャンセルしたいお客様からの電話を受ける想定です。あなたは予約センタースタッフとして対応してください。\n\n準備ができたら「開始」と入力してください。',
+      opening: 'あの〜、先週予約したレンタカーをキャンセルしたいんですが…出発は明後日の予定でした。急に予定が変わってしまって。',
+      followUps: [
+        { keywords: ['番号','予約番号','確認番号'], text: '予約番号はRC-20241225-007です。名前は山本太郎です。' },
+        { keywords: ['料金','いくら','何パーセント','費用'], text: 'えっ、キャンセル料がかかるんですか？いくらくらいになりますか？' },
+        { keywords: ['理由','なぜ','どうして','事情'], text: '家族が急病になりまして…病院に付き添わないといけなくなりました。' },
+        { keywords: ['特例','免除','例外','病気'], text: 'そうですか…医師の診断書があれば特例になるかもしれないとはどういうことですか？' },
+        { keywords: ['返金','いつ','反映','何日'], text: '分かりました。返金はいつ頃になりますか？' },
+      ],
+      defaultReply: 'そうですか…よろしくお願いします。',
+      evalCriteria: [
+        { text: '予約番号・お客様情報を確認した', keywords: ['予約番号','RC','山本','お名前','番号'] },
+        { text: 'キャンセル理由を丁寧に確認した', keywords: ['理由','事情','どのような','差し支えなければ'] },
+        { text: 'キャンセル料を正確に案内した（2日前=40%）', keywords: ['40%','40パーセント','4割'] },
+        { text: '特例・免除の可能性に言及した', keywords: ['特例','免除','診断書','上長','確認'] },
+        { text: '返金方法・タイミングを説明した', keywords: ['返金','営業日','クレジット','振込','反映'] },
+      ]
+    },
+    cheatsheet: {
+      summary: 'キャンセル料は出発日を基準に計算。お客様の了承を取ってからシステム処理！',
+      points: [
+        '料金の計算は「出発日から何日前か」で決まる（受付日ではない）',
+        'お客様に金額を伝えて了承を得てからシステム処理する',
+        '天災・急病等の特例は上長確認が必要',
+        '返金反映まで3〜10営業日かかることを説明',
+        '感情的なお客様には先に共感・謝罪を示す',
+      ],
+      table: [
+        ['キャンセル時期', '料率', '計算例（3万円）'],
+        ['8日前以前', '無料', '0円'],
+        ['7〜4日前', '20%', '6,000円'],
+        ['3〜2日前', '40%', '12,000円'],
+        ['前日', '60%', '18,000円'],
+        ['当日（連絡あり）', '80%', '24,000円'],
+        ['ノーショー', '100%', '30,000円'],
+      ],
+      tips: [
+        'GW・お盆・年末年始は特別料率（前日から80%等）—必ず確認',
+        '「何日前」は出発日の前日を1日前として数える',
+        'クレカ返金は3〜10営業日、振込は5〜10営業日と案内',
+      ]
+    },
+    ngExamples: [
+      {
+        title: 'NG① お客様了承なしにキャンセル処理する',
+        bad: '「承知しました」と言ってすぐシステムでキャンセル処理を実行する',
+        good: '「○○円のキャンセル料が発生いたしますがよろしいでしょうか？」と確認してから処理',
+        reason: '事後にキャンセル料で揉めると返金対応が非常に困難になる'
+      },
+      {
+        title: 'NG② 日数の数え方を間違える',
+        bad: '「今日から数えて3日前なので40%です」と今日を起点に計算する',
+        good: '「出発予定日の前日を1日前として計算します」と出発日基準で正確に計算',
+        reason: '1日ずれるだけで料率が変わり、過請求・過少請求のクレームになる'
+      },
+      {
+        title: 'NG③ 感情的なお客様にすぐ料金を言う',
+        bad: '「規約上40%のキャンセル料が発生します」と冒頭から料金の話をする',
+        good: '「ご事情を伺い、大変申し訳ございません」と先に共感し、その後料金を説明する',
+        reason: '共感なしの料金説明はお客様を更に感情的にさせクレームが大きくなる'
+      },
+    ],
+  },
+];
+
+// ====================================================
+// STATE
+// ====================================================
+let state = {
+  currentThemeId: null,
+  isTyping: false,
+  quizActive: false,
+  quizAnswered: false,
+  completedThemes: new Set(),
+  msgCount: 0,
+  quizResults: {},
+  roleplayActive: false,
+  roleplayStarted: false,
+  roleplayLog: [],
+  roleplayResults: {},
+  activePageId: null,
+};
+
+// ====================================================
+// HELPERS
+// ====================================================
+function getTheme(id) { return THEMES.find(t => t.id === id); }
+function nowTime() {
+  const d = new Date();
+  return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+}
+function scrollBottom() {
+  const el = document.getElementById('chatMessages');
+  setTimeout(() => el.scrollTop = el.scrollHeight, 50);
+}
+function escQ(s) { return s.replace(/'/g, "\\'"); }
+function escapeHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function formatAIMessage(text) {
+  let html = text
+    .replace(/【結論】/g, '<div class="msg-section-tag">📌 結論</div>')
+    .replace(/【手順】/g, '<div class="msg-section-tag" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;">📋 手順</div>')
+    .replace(/【注意点】/g, '<div class="msg-section-tag" style="background:#fffbeb;color:#d97706;border:1px solid #fde68a;">⚠️ 注意点</div>');
+
+  const lines = html.split('\n');
+  let inList = false, result = [];
+  for (let line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('・')) {
+      if (!inList) { result.push('<ul class="msg-list">'); inList = true; }
+      result.push(`<li>${trimmed.slice(1).trim()}</li>`);
+    } else {
+      if (inList) { result.push('</ul>'); inList = false; }
+      result.push(line);
+    }
+  }
+  if (inList) result.push('</ul>');
+  return result.join('\n');
+}
+
+// ====================================================
+// RENDER
+// ====================================================
+function renderThemes() {
+  const container = document.getElementById('themeList');
+  container.innerHTML = THEMES.map(t => {
+    const isActive = t.id === state.currentThemeId;
+    const isDone = state.completedThemes.has(t.id);
+    let sc = 'status-unread', sl = '未学習';
+    if (isActive) { sc = 'status-active'; sl = '学習中'; }
+    if (isDone) { sc = 'status-done'; sl = '完了'; }
+    return `
+      <div class="theme-item ${isActive ? 'active' : ''}" onclick="selectTheme('${t.id}')">
+        <div class="theme-icon">${t.icon}</div>
+        <div class="theme-info">
+          <div class="theme-name">${t.name}</div>
+          <div class="theme-desc">${t.desc}</div>
+          <span class="theme-status ${sc}">${sl}</span>
+        </div>
+      </div>`;
+  }).join('');
+  const done = state.completedThemes.size;
+  const pct = Math.round(done / THEMES.length * 100);
+  document.getElementById('overallProgress').style.width = pct + '%';
+  document.getElementById('progressCount').textContent = `${done} / ${THEMES.length} テーマ完了`;
+  document.getElementById('doneCount').textContent = `${done} / ${THEMES.length}`;
+}
+
+function renderManual(theme) {
+  const container = document.getElementById('manualList');
+  if (!theme) { container.innerHTML = '<div style="font-size:12px;color:var(--gray-400);">テーマを選択してください</div>'; return; }
+  container.innerHTML = theme.manuals.map(m => {
+    const pagesHtml = (m.pages || []).map(p => `
+      <div class="manual-page-row" id="pagerow_${p.id}">
+        <span class="manual-page-badge">p.${p.page}</span>
+        <span class="manual-page-info">${p.section} 「${p.title}」<span style="color:var(--gray-400);"> ${p.lines}</span></span>
+      </div>`).join('');
+    return `
+      <div class="manual-item ${m.highlight ? 'highlighted' : ''}" onclick="toggleManualPages(this)">
+        <div class="manual-item-title">📄 ${m.title}</div>
+        <div class="manual-item-desc">${m.desc}</div>
+        <div class="manual-pages">${pagesHtml}</div>
+      </div>`;
+  }).join('');
+}
+
+function toggleManualPages(el) {
+  document.querySelectorAll('.manual-item').forEach(e => { if (e !== el) e.classList.remove('highlighted'); });
+  el.classList.toggle('highlighted');
+}
+
+function highlightPageRow(pageId) {
+  document.querySelectorAll('.manual-page-row').forEach(r => r.classList.remove('active'));
+  const el = document.getElementById('pagerow_' + pageId);
+  if (el) {
+    el.classList.add('active');
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Also expand parent manual-item
+    el.closest('.manual-item').classList.add('highlighted');
+  }
+}
+
+function renderCheckPoints(theme) {
+  const container = document.getElementById('checkList');
+  if (!theme) { container.innerHTML = '<div style="font-size:12px;color:var(--gray-400);">テーマを選択してください</div>'; return; }
+  container.innerHTML = theme.checkPoints.map((cp, i) => `
+    <div class="check-item">
+      <div class="check-box" id="cp_${i}" onclick="toggleCheck(${i})"></div>
+      <span>${cp}</span>
+    </div>`).join('');
+}
+
+function toggleCheck(i) {
+  const el = document.getElementById('cp_' + i);
+  if (el.classList.contains('checked')) { el.classList.remove('checked'); el.textContent = ''; }
+  else { el.classList.add('checked'); el.textContent = '✓'; }
+}
+
+function renderQuickButtons(theme) {
+  const container = document.getElementById('quickButtons');
+  if (!theme) { container.innerHTML = ''; return; }
+  const btns = Object.keys(theme.qas).map(q =>
+    `<button class="quick-btn" onclick="handleQuickBtn(this,'${escQ(q)}')">${q}</button>`).join('');
+  const quizBtn = `<button class="quick-btn quiz-start-btn" onclick="startQuiz()">📝 理解度チェック</button>`;
+  const rpBtn = `<button class="quick-btn roleplay-btn" onclick="startRoleplay()">🎭 ロールプレイ</button>`;
+  const csBtn = `<button class="quick-btn" style="border-color:#0891b2;color:#0891b2;background:#ecfeff;" onclick="showCheatsheet()">📋 チートシート</button>`;
+  const ngBtn = `<button class="quick-btn" style="border-color:#dc2626;color:#dc2626;background:#fef2f2;" onclick="showNgExamples()">⛔ NG例を見る</button>`;
+  container.innerHTML = btns + quizBtn + rpBtn + csBtn + ngBtn;
+}
+
+// ====================================================
+// NOTE
+// ====================================================
+const noteStore = {};
+function saveNote() {
+  const id = state.currentThemeId;
+  if (!id) return;
+  noteStore[id] = document.getElementById('noteArea').value;
+  const saved = document.getElementById('noteSaved');
+  saved.classList.add('show');
+  clearTimeout(saveNote._t);
+  saveNote._t = setTimeout(() => saved.classList.remove('show'), 1500);
+}
+function loadNote(id) {
+  const el = document.getElementById('noteArea');
+  if (el) el.value = noteStore[id] || '';
+}
+
+// ====================================================
+// CHEATSHEET
+// ====================================================
+function showCheatsheet() {
+  const theme = getTheme(state.currentThemeId);
+  if (!theme || !theme.cheatsheet) return;
+  const cs = theme.cheatsheet;
+  document.getElementById('csTitle').textContent = `${theme.icon} ${theme.name} — チートシート`;
+
+  const pointsHtml = cs.points.map((p, i) =>
+    `<div class="cs-point"><span class="cs-num">${i+1}</span><span>${p}</span></div>`).join('');
+
+  let tableHtml = '';
+  if (cs.table && cs.table.length) {
+    const [head, ...rows] = cs.table;
+    tableHtml = `<table class="cs-table"><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>
+      ${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  }
+
+  const tipsHtml = (cs.tips||[]).map(t =>
+    `<div class="cs-tip">💡 ${t}</div>`).join('');
+
+  document.getElementById('csBody').innerHTML = `
+    <div class="cs-section">
+      <div class="cs-section-title">一言まとめ</div>
+      <div class="cs-summary">${cs.summary}</div>
+    </div>
+    <div class="cs-section">
+      <div class="cs-section-title">必須確認ポイント</div>
+      <div class="cs-points">${pointsHtml}</div>
+    </div>
+    ${tableHtml ? `<div class="cs-section"><div class="cs-section-title">クイックリファレンス</div>${tableHtml}</div>` : ''}
+    ${tipsHtml ? `<div class="cs-section"><div class="cs-section-title">現場のコツ</div><div class="cs-tips">${tipsHtml}</div></div>` : ''}
+    <button class="modal-print-btn" onclick="window.print()">🖨️ 印刷 / PDF保存</button>
+  `;
+  document.getElementById('csModal').style.display = 'flex';
+}
+function closeCheatsheet(e) {
+  if (!e || e.target === document.getElementById('csModal')) {
+    document.getElementById('csModal').style.display = 'none';
+  }
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCheatsheet(); });
+
+// ====================================================
+// NG EXAMPLES
+// ====================================================
+function showNgExamples() {
+  const theme = getTheme(state.currentThemeId);
+  if (!theme || !theme.ngExamples) return;
+  addDivider('⛔ 新人がよくやるNG例');
+  const container = document.getElementById('chatMessages');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap ai';
+  const items = theme.ngExamples.map(ng => `
+    <div class="ng-item">
+      <div class="ng-item-title">${ng.title}</div>
+      <div class="ng-row"><span class="ng-badge ng-bad">NG</span><span>${ng.bad}</span></div>
+      <div class="ng-row"><span class="ng-badge ng-good">OK</span><span>${ng.good}</span></div>
+      <div class="ng-reason">理由：${ng.reason}</div>
+    </div>`).join('');
+  wrap.innerHTML = `
+    <div class="msg-avatar ai">👩‍💼</div>
+    <div style="max-width:90%;">
+      <div class="ng-card">
+        <span class="ng-label">⛔ 新人がよくやるNG例 — ${theme.name}</span>
+        ${items}
+      </div>
+      <div class="msg-meta">${nowTime()}</div>
+    </div>`;
+  container.appendChild(wrap);
+  state.msgCount++;
+  updateStats();
+  scrollBottom();
+}
+
+// ====================================================
+// CONFIDENCE
+// ====================================================
+const confidenceStore = {};
+function addConfidenceButtons() {
+  const id = state.currentThemeId;
+  if (!id) return;
+  const container = document.getElementById('chatMessages');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap ai';
+  const uid = 'conf_' + Date.now();
+  wrap.innerHTML = `
+    <div class="msg-avatar ai" style="opacity:0;pointer-events:none;">👩‍💼</div>
+    <div>
+      <div class="confidence-row">
+        <span>この内容：</span>
+        <button class="conf-btn ok" id="${uid}_ok" onclick="markConfidence('${uid}','ok')">👍 分かった</button>
+        <button class="conf-btn ng" id="${uid}_ng" onclick="markConfidence('${uid}','ng')">🤔 まだ不安</button>
+      </div>
+    </div>`;
+  container.appendChild(wrap);
+  scrollBottom();
+}
+function markConfidence(uid, val) {
+  const id = state.currentThemeId;
+  if (!confidenceStore[id]) confidenceStore[id] = { ok: 0, ng: 0 };
+  confidenceStore[id][val]++;
+  document.getElementById(uid+'_ok').classList.toggle('selected', val === 'ok');
+  document.getElementById(uid+'_ng').classList.toggle('selected', val === 'ng');
+  document.getElementById(uid+'_ok').disabled = true;
+  document.getElementById(uid+'_ng').disabled = true;
+  if (val === 'ng') {
+    setTimeout(() => addAIMessage('この内容について不安な点があれば、具体的に質問してみましょう！\n下のボタンか、テキストで質問できます。'), 400);
+  }
+  updateConfidenceStat(id);
+}
+function updateConfidenceStat(id) {
+  const c = confidenceStore[id];
+  const el = document.getElementById('confidenceStat');
+  if (!c || (c.ok + c.ng) === 0) { el.textContent = '—'; el.style.color = ''; return; }
+  const pct = Math.round(c.ok / (c.ok + c.ng) * 100);
+  el.textContent = `${pct}% 理解`;
+  el.style.color = pct >= 70 ? 'var(--success)' : pct >= 40 ? 'var(--warning)' : 'var(--danger)';
+}
+
+function updateStats() {
+  const theme = getTheme(state.currentThemeId);
+  document.getElementById('currentThemeName').textContent = theme ? theme.name : '—';
+  document.getElementById('msgCount').textContent = state.msgCount;
+  if (state.currentThemeId) updateConfidenceStat(state.currentThemeId);
+  const qr = state.currentThemeId ? state.quizResults[state.currentThemeId] : null;
+  const qEl = document.getElementById('quizResultStat');
+  if (qr === null || qr === undefined) { qEl.textContent = '未実施'; qEl.style.color = ''; }
+  else if (qr) { qEl.textContent = '✓ 正解'; qEl.style.color = 'var(--success)'; }
+  else { qEl.textContent = '✗ 不正解'; qEl.style.color = 'var(--danger)'; }
+
+  const rr = state.currentThemeId ? state.roleplayResults[state.currentThemeId] : null;
+  const rpEl = document.getElementById('roleplayStat');
+  if (rr === null || rr === undefined) { rpEl.textContent = '未実施'; rpEl.style.color = ''; }
+  else { rpEl.textContent = `${rr}点 / 5点`; rpEl.style.color = rr >= 4 ? 'var(--success)' : rr >= 2 ? 'var(--warning)' : 'var(--danger)'; }
+}
+
+// ====================================================
+// CHAT CORE
+// ====================================================
+function addMessage(role, content) {
+  const container = document.getElementById('chatMessages');
+  const isUser = role === 'user';
+  const isCustomer = role === 'customer';
+  const wrap = document.createElement('div');
+  wrap.className = `msg-wrap ${isUser ? 'user' : isCustomer ? 'customer' : 'ai'}`;
+  const avatarClass = isUser ? 'user-av' : isCustomer ? 'customer-av' : 'ai';
+  const avatarIcon = isUser ? '👤' : isCustomer ? '👩' : '👩‍💼';
+  const roleLabel = isCustomer ? '（お客様役）' : '';
+  wrap.innerHTML = `
+    <div class="msg-avatar ${avatarClass}">${avatarIcon}</div>
+    <div>
+      <div class="msg-bubble">${escapeHtml(content)}</div>
+      <div class="msg-meta">${nowTime()}${roleLabel}</div>
+    </div>`;
+  container.appendChild(wrap);
+  state.msgCount++;
+  updateStats();
+  scrollBottom();
+}
+
+function addAIMessage(text) {
+  const container = document.getElementById('chatMessages');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap ai';
+  wrap.innerHTML = `
+    <div class="msg-avatar ai">👩‍💼</div>
+    <div>
+      <div class="msg-bubble">${formatAIMessage(text)}</div>
+      <div class="msg-meta">${nowTime()}</div>
+    </div>`;
+  container.appendChild(wrap);
+  state.msgCount++;
+  updateStats();
+  scrollBottom();
+}
+
+function addCitationBubble(citations) {
+  const container = document.getElementById('chatMessages');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap ai';
+  // Find page IDs for citations
+  const theme = getTheme(state.currentThemeId);
+  const chips = citations.map(c => {
+    // Find matching page in manual data
+    let pageId = null;
+    if (theme) {
+      for (const m of theme.manuals) {
+        if (m.title === c.manual && m.pages) {
+          const pg = m.pages.find(p => p.page === c.page);
+          if (pg) pageId = pg.id;
+        }
+      }
+    }
+    const onclick = pageId ? `highlightPageRow('${pageId}')` : '';
+    return `<span class="citation-chip" onclick="${onclick}">
+      📄 ${c.manual}
+      <span class="citation-page">p.${c.page}</span>
+      <span class="citation-section">${c.section}「${c.title}」${c.lines}</span>
+    </span>`;
+  }).join('');
+  wrap.innerHTML = `
+    <div class="msg-avatar ai">👩‍💼</div>
+    <div>
+      <div class="msg-bubble" style="padding:8px 12px;">
+        <div style="font-size:11px;color:var(--purple);font-weight:700;margin-bottom:5px;">📖 参照元マニュアル</div>
+        ${chips}
+      </div>
+      <div class="msg-meta">${nowTime()}</div>
+    </div>`;
+  container.appendChild(wrap);
+  scrollBottom();
+  // Auto-highlight first citation
+  if (citations[0]) {
+    const theme2 = getTheme(state.currentThemeId);
+    if (theme2) {
+      for (const m of theme2.manuals) {
+        if (m.title === citations[0].manual && m.pages) {
+          const pg = m.pages.find(p => p.page === citations[0].page);
+          if (pg) setTimeout(() => highlightPageRow(pg.id), 300);
+        }
+      }
+    }
+  }
+}
+
+function showTyping() {
+  const container = document.getElementById('chatMessages');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap ai'; wrap.id = 'typingIndicator';
+  wrap.innerHTML = `
+    <div class="msg-avatar ai">👩‍💼</div>
+    <div class="typing-indicator">
+      <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+    </div>`;
+  container.appendChild(wrap);
+  scrollBottom();
+}
+function removeTyping() { const el = document.getElementById('typingIndicator'); if (el) el.remove(); }
+
+function addDivider(label, cls = '') {
+  const container = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `divider-msg ${cls}`;
+  div.innerHTML = `<span>${label}</span>`;
+  container.appendChild(div);
+}
+
+// ====================================================
+// QUIZ
+// ====================================================
+function startQuiz() {
+  const theme = getTheme(state.currentThemeId);
+  if (!theme || state.quizActive) return;
+  state.quizActive = true; state.quizAnswered = false;
+  addDivider('理解度チェック');
+  const container = document.getElementById('chatMessages');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap ai';
+  const opts = theme.quiz.options.map((opt, i) =>
+    `<button class="quiz-option" onclick="answerQuiz(${i})" id="qopt_${i}">${String.fromCharCode(65+i)}. ${opt}</button>`).join('');
+  wrap.innerHTML = `
+    <div class="msg-avatar ai">👩‍💼</div>
+    <div style="max-width:85%;">
+      <div class="quiz-card">
+        <span class="quiz-label">📝 理解度チェック</span>
+        <div class="quiz-question">${theme.quiz.question}</div>
+        <div class="quiz-options">${opts}</div>
+        <div class="quiz-result" id="quizResultBox"></div>
+      </div>
+      <div class="msg-meta">${nowTime()}</div>
+    </div>`;
+  container.appendChild(wrap);
+  scrollBottom();
+}
+
+function answerQuiz(selectedIdx) {
+  if (state.quizAnswered) return;
+  state.quizAnswered = true;
+  const theme = getTheme(state.currentThemeId);
+  const correct = theme.quiz.correct;
+  const isCorrect = selectedIdx === correct;
+  theme.quiz.options.forEach((_, i) => {
+    const btn = document.getElementById('qopt_' + i);
+    if (btn) { btn.disabled = true; if (i === correct) btn.classList.add('correct'); if (i === selectedIdx && !isCorrect) btn.classList.add('wrong'); }
+  });
+  const rb = document.getElementById('quizResultBox');
+  if (rb) {
+    rb.classList.add('show');
+    rb.classList.add(isCorrect ? 'correct-result' : 'wrong-result');
+    rb.innerHTML = isCorrect ? `✅ 正解！<br>${theme.quiz.explanation}` : `❌ 不正解。<br>${theme.quiz.wrongExplanation}`;
+  }
+  state.quizResults[state.currentThemeId] = isCorrect;
+  if (isCorrect) state.completedThemes.add(state.currentThemeId);
+  renderThemes(); updateStats(); scrollBottom();
+  setTimeout(() => {
+    addAIMessage(isCorrect
+      ? `素晴らしい！正解です。\n\n${theme.name}の重要ポイントをしっかり理解できています。\n次は「🎭 ロールプレイ」で実際の電話対応を練習してみましょう！`
+      : `惜しかったです！\n\n右側の参照マニュアルを確認して復習しましょう。\n分からない点はボタンから質問してください。`);
+  }, 700);
+  state.quizActive = false;
+}
+
+// ====================================================
+// ROLEPLAY
+// ====================================================
+function startRoleplay() {
+  const theme = getTheme(state.currentThemeId);
+  if (!theme || state.roleplayActive) return;
+  state.roleplayActive = true;
+  state.roleplayStarted = false;
+  state.roleplayLog = [];
+
+  // Update header
+  document.getElementById('chatHeader').classList.add('roleplay-active');
+  document.getElementById('chatAvatar').className = 'ai-avatar customer';
+  document.getElementById('chatAvatar').textContent = '👩';
+  document.getElementById('chatHeaderName').textContent = 'ロールプレイ中 — AIがお客様役を演じています';
+  document.getElementById('statusDot').className = 'status-dot orange';
+  document.getElementById('chatHeaderStatus').textContent = '🎭 あなた＝スタッフ役 ｜ 対応してください';
+
+  addDivider('🎭 ロールプレイ開始', 'roleplay-divider');
+  addAIMessage(theme.roleplay.scenario);
+  document.getElementById('chatInput').placeholder = '「開始」と入力してロールプレイを始める';
+}
+
+function handleRoleplayInput(text) {
+  const theme = getTheme(state.currentThemeId);
+  const rp = theme.roleplay;
+
+  if (!state.roleplayStarted) {
+    if (text.includes('開始') || text.includes('始') || text.includes('start') || text.includes('ok') || text.includes('OK')) {
+      state.roleplayStarted = true;
+      state.roleplayLog = [];
+      showTyping();
+      setTimeout(() => {
+        removeTyping();
+        addMessage('customer', rp.opening);
+        state.roleplayLog.push({ role: 'customer', text: rp.opening });
+        document.getElementById('chatInput').placeholder = 'お客様に返答してください…';
+      }, 800);
+    } else {
+      setTimeout(() => addAIMessage('「開始」と入力するとロールプレイが始まります。'), 400);
+    }
+    return;
+  }
+
+  // Log operator response
+  state.roleplayLog.push({ role: 'operator', text });
+
+  // Check for end keywords
+  if (text.includes('終了') || text.includes('以上') || text.includes('ありがとうございました') || state.roleplayLog.filter(l => l.role === 'operator').length >= 6) {
+    endRoleplay();
+    return;
+  }
+
+  // Find matching follow-up
+  const lower = text.toLowerCase();
+  const matched = rp.followUps.find(f => f.keywords.some(k => lower.includes(k)));
+
+  showTyping();
+  setTimeout(() => {
+    removeTyping();
+    const reply = matched ? matched.text : rp.defaultReply;
+    addMessage('customer', reply);
+    state.roleplayLog.push({ role: 'customer', text: reply });
+
+    if (state.roleplayLog.filter(l => l.role === 'operator').length >= 5) {
+      setTimeout(() => addAIMessage('もう少しで評価できます。あと1〜2回やり取りしたら「以上です」と入力して評価を受けましょう。'), 500);
+    }
+  }, 700 + Math.random() * 500);
+}
+
+function endRoleplay() {
+  const theme = getTheme(state.currentThemeId);
+  const rp = theme.roleplay;
+  const operatorTexts = state.roleplayLog.filter(l => l.role === 'operator').map(l => l.text).join(' ');
+  const lower = operatorTexts.toLowerCase();
+
+  // Evaluate
+  const results = rp.evalCriteria.map(c => {
+    if (c.negate) {
+      const hasBad = (c.bad || []).some(b => lower.includes(b));
+      const hasGood = c.keywords.some(k => lower.includes(k));
+      return { text: c.text, ok: !hasBad || hasGood };
+    }
+    return { text: c.text, ok: c.keywords.some(k => lower.includes(k)) };
+  });
+
+  const score = results.filter(r => r.ok).length;
+  state.roleplayResults[state.currentThemeId] = score;
+
+  addDivider('🎭 ロールプレイ評価', 'roleplay-divider');
+
+  const container = document.getElementById('chatMessages');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap ai';
+  const items = results.map(r => `
+    <div class="eval-item">
+      <span class="eval-badge ${r.ok ? 'eval-ok' : 'eval-ng'}">${r.ok ? 'OK' : 'NG'}</span>
+      <span class="eval-item-text">${r.text}</span>
+    </div>`).join('');
+  const scoreColor = score >= 4 ? 'var(--success)' : score >= 2 ? 'var(--warning)' : 'var(--danger)';
+  const scoreLabel = score >= 4 ? '優秀' : score >= 2 ? '合格' : '要復習';
+  wrap.innerHTML = `
+    <div class="msg-avatar ai">👩‍💼</div>
+    <div style="max-width:90%;">
+      <div class="roleplay-eval-card">
+        <span class="roleplay-eval-title">🎭 ロールプレイ評価結果</span>
+        ${items}
+        <div class="eval-score" style="color:${scoreColor};">
+          総合スコア：${score} / ${results.length} — ${scoreLabel}
+        </div>
+      </div>
+      <div class="msg-meta">${nowTime()}</div>
+    </div>`;
+  container.appendChild(wrap);
+
+  // Feedback message
+  setTimeout(() => {
+    if (score >= 4) {
+      addAIMessage(`素晴らしい対応でした！${score}/${results.length}の確認項目をカバーできています。\n\n実際の現場でもこの調子で対応できれば安心です。`);
+    } else {
+      const missed = results.filter(r => !r.ok).map(r => '・' + r.text).join('\n');
+      addAIMessage(`お疲れ様でした。改善ポイントをご確認ください。\n\n以下の確認が不足していました：\n${missed}\n\nもう一度「🎭 ロールプレイ」ボタンで練習しましょう。`);
+    }
+  }, 600);
+
+  // Reset header
+  state.roleplayActive = false;
+  state.roleplayStarted = false;
+  document.getElementById('chatHeader').classList.remove('roleplay-active');
+  document.getElementById('chatAvatar').className = 'ai-avatar';
+  document.getElementById('chatAvatar').textContent = '👩‍💼';
+  document.getElementById('chatHeaderName').textContent = 'AI研修トレーナー';
+  document.getElementById('statusDot').className = 'status-dot';
+  document.getElementById('chatHeaderStatus').textContent = 'オンライン ・ 業務知識特化モデル';
+  document.getElementById('chatInput').placeholder = '質問を入力…（ボタンでも質問できます）';
+
+  renderThemes(); updateStats(); scrollBottom();
+}
+
+// ====================================================
+// THEME SELECTION
+// ====================================================
+function selectTheme(id) {
+  if (state.isTyping) return;
+  state.currentThemeId = id;
+  state.roleplayActive = false;
+  state.roleplayStarted = false;
+
+  // Reset header
+  document.getElementById('chatHeader').classList.remove('roleplay-active');
+  document.getElementById('chatAvatar').className = 'ai-avatar';
+  document.getElementById('chatAvatar').textContent = '👩‍💼';
+  document.getElementById('chatHeaderName').textContent = 'AI研修トレーナー';
+  document.getElementById('statusDot').className = 'status-dot';
+  document.getElementById('chatHeaderStatus').textContent = 'オンライン ・ 業務知識特化モデル';
+  document.getElementById('chatInput').placeholder = '質問を入力…（ボタンでも質問できます）';
+
+  const theme = getTheme(id);
+  document.getElementById('chatMessages').innerHTML = '';
+  renderManual(theme);
+  renderCheckPoints(theme);
+  renderQuickButtons(theme);
+  renderThemes();
+  document.getElementById('noteSection').style.display = 'block';
+  loadNote(id);
+  updateStats();
+
+  showTyping();
+  state.isTyping = true;
+  setTimeout(() => {
+    removeTyping();
+    state.isTyping = false;
+    addDivider(`${theme.icon} ${theme.name} — 学習開始`);
+    addAIMessage(theme.intro);
+  }, 1200);
+}
+
+// ====================================================
+// QUICK BUTTON
+// ====================================================
+function handleQuickBtn(btn, question) {
+  if (state.isTyping || state.roleplayActive) return;
+  btn.disabled = true; btn.style.opacity = '0.5';
+  addMessage('user', question);
+
+  const theme = getTheme(state.currentThemeId);
+  const qa = theme.qas[question];
+  if (!qa) return;
+
+  showTyping();
+  state.isTyping = true;
+  setTimeout(() => {
+    removeTyping();
+    state.isTyping = false;
+    addAIMessage(qa.answer);
+    if (qa.citations && qa.citations.length) {
+      setTimeout(() => { addCitationBubble(qa.citations); setTimeout(addConfidenceButtons, 300); }, 200);
+    } else {
+      setTimeout(addConfidenceButtons, 200);
+    }
+    btn.disabled = false; btn.style.opacity = '1';
+  }, 800 + Math.random() * 500);
+}
+
+// ====================================================
+// FREE TEXT
+// ====================================================
+function handleSend() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text || state.isTyping) return;
+  input.value = ''; autoResize(input);
+
+  if (state.roleplayActive) {
+    addMessage('user', text);
+    handleRoleplayInput(text);
+    return;
+  }
+
+  if (!state.currentThemeId) {
+    addMessage('user', text);
+    setTimeout(() => addAIMessage('まず左の学習テーマを選択してください。'), 500);
+    return;
+  }
+
+  addMessage('user', text);
+  const theme = getTheme(state.currentThemeId);
+
+  const matched = Object.entries(theme.qas).find(([q]) =>
+    q.includes(text) || text.includes(q.slice(0, 6))
+  );
+
+  showTyping();
+  state.isTyping = true;
+  setTimeout(() => {
+    removeTyping();
+    state.isTyping = false;
+    if (matched) {
+      const qa = matched[1];
+      addAIMessage(qa.answer);
+      if (qa.citations) setTimeout(() => addCitationBubble(qa.citations), 200);
+    } else {
+      addAIMessage(`ご質問ありがとうございます。\n\n「${text}」については詳細確認が必要です。\n\n右側の参照マニュアルをご確認いただくか、下のボタンからよくある質問を選んでください。不明点は上長へ確認することを忘れずに。`);
+    }
+  }, 900 + Math.random() * 400);
+}
+
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 100) + 'px'; }
+
+document.getElementById('chatInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+});
+document.getElementById('chatInput').addEventListener('input', function() { autoResize(this); });
+
+// ====================================================
+// VOICE INPUT
+// ====================================================
+let recognition = null;
+let isRecording = false;
+
+function initSpeechRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) return null;
+  const r = new SpeechRecognition();
+  r.lang = 'ja-JP';
+  r.continuous = false;
+  r.interimResults = true;
+  r.maxAlternatives = 1;
+
+  r.onstart = () => {
+    isRecording = true;
+    document.getElementById('micBtn').classList.add('recording');
+    document.getElementById('micBtn').textContent = '⏹';
+    const st = document.getElementById('micStatus');
+    st.classList.add('visible');
+    st.textContent = '🔴 録音中… 話し終えたらもう一度押してください';
+  };
+
+  r.onresult = (e) => {
+    const input = document.getElementById('chatInput');
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    const base = input.dataset.confirmed || '';
+    input.value = base + final + interim;
+    if (final) input.dataset.confirmed = base + final;
+    autoResize(input);
+    // Show interim in status
+    if (interim) {
+      document.getElementById('micStatus').textContent = `🎙 「${interim}」`;
+    }
+  };
+
+  r.onend = () => {
+    isRecording = false;
+    document.getElementById('micBtn').classList.remove('recording');
+    document.getElementById('micBtn').textContent = '🎤';
+    const st = document.getElementById('micStatus');
+    const input = document.getElementById('chatInput');
+    delete input.dataset.confirmed;
+    if (input.value.trim()) {
+      st.textContent = '✅ 認識完了 — Enterまたは➤で送信';
+      setTimeout(() => st.classList.remove('visible'), 2500);
+      input.focus();
+    } else {
+      st.classList.remove('visible');
+    }
+  };
+
+  r.onerror = (e) => {
+    isRecording = false;
+    document.getElementById('micBtn').classList.remove('recording');
+    document.getElementById('micBtn').textContent = '🎤';
+    const st = document.getElementById('micStatus');
+    if (e.error === 'not-allowed') {
+      st.textContent = '⚠️ マイクの許可が必要です（ブラウザ設定で許可してください）';
+    } else if (e.error === 'no-speech') {
+      st.textContent = '音声が検出されませんでした。もう一度試してください。';
+    } else {
+      st.textContent = `エラー: ${e.error}`;
+    }
+    st.classList.add('visible');
+    setTimeout(() => st.classList.remove('visible'), 3000);
+  };
+
+  return r;
+}
+
+function toggleMic() {
+  if (!recognition) {
+    recognition = initSpeechRecognition();
+    if (!recognition) {
+      alert('このブラウザは音声入力に対応していません。\nChrome または Edge をご利用ください。');
+      return;
+    }
+  }
+  if (isRecording) {
+    recognition.stop();
+  } else {
+    document.getElementById('chatInput').value = '';
+    recognition.start();
+  }
+}
+
+// ====================================================
+// INIT
+// ====================================================
+renderThemes();
+renderManual(null);
+renderCheckPoints(null);
+updateStats();
+</script>
+</body>
+</html>
