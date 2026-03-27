@@ -598,6 +598,7 @@
         <div class="chat-header-name" id="chatHeaderName">AI研修トレーナー</div>
         <div class="chat-header-status"><span class="status-dot" id="statusDot"></span><span id="chatHeaderStatus">オンライン ・ 業務知識特化モデル</span></div>
       </div>
+      <button onclick="resetChat()" title="チャットをリセット" style="background:none;border:1px solid var(--gray-200);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:14px;color:var(--gray-500);line-height:1;" onmouseover="this.style.background='var(--gray-100)'" onmouseout="this.style.background='none'">↺</button>
     </div>
 
     <div class="chat-messages" id="chatMessages">
@@ -2210,6 +2211,10 @@ function endRoleplay() {
 // ====================================================
 // THEME SELECTION
 // ====================================================
+function resetChat() {
+  if (state.currentThemeId) selectTheme(state.currentThemeId);
+}
+
 function selectTheme(id) {
   if (state.isTyping) return;
   state.currentThemeId = id;
