@@ -171,7 +171,7 @@
   .msg-avatar.user-av { background: var(--gray-200); color: var(--gray-600); }
   .msg-bubble {
     max-width: 80%; padding: 10px 14px; border-radius: 12px;
-    font-size: 13px; line-height: 1.65; white-space: pre-wrap; word-break: break-word;
+    font-size: 13px; line-height: 1.65; word-break: break-word;
   }
   .msg-wrap.ai .msg-bubble {
     background: var(--white); color: var(--gray-800);
@@ -1416,7 +1416,10 @@ function formatAIMessage(text) {
     }
   }
   if (inList) result.push('</ul>');
-  return result.join('\n');
+  return result
+    .map(line => (line === '' || line === '\n') ? '<br>' : line)
+    .join('<br>')
+    .replace(/(<br>){3,}/g, '<br><br>');
 }
 
 // ====================================================
