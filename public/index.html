@@ -1934,7 +1934,11 @@ function addAIMessage(text) {
   container.appendChild(wrap);
   state.msgCount++;
   updateStats();
-  scrollBottom();
+  // Scroll to top of this AI message so response is readable from the start
+  setTimeout(() => {
+    const msgTop = wrap.offsetTop - container.offsetTop;
+    container.scrollTop = msgTop - 8;
+  }, 30);
 }
 
 function addCitationBubble(citations) {
@@ -2245,7 +2249,7 @@ function selectTheme(id) {
     state.isTyping = false;
     addDivider(`${theme.icon} ${theme.name} — 学習開始`);
     addAIMessage(theme.intro);
-    setTimeout(() => { document.getElementById('chatMessages').scrollTop = 0; }, 100);
+    setTimeout(() => { document.getElementById('chatMessages').scrollTop = 0; }, 150);
   }, 1200);
 }
 
@@ -2267,10 +2271,20 @@ function handleQuickBtn(btn, question) {
     removeTyping();
     state.isTyping = false;
     addAIMessage(qa.answer);
+    // Scroll to top of AI response after all parts (citations + confidence) are added
+    const scrollToAI = () => {
+      const container = document.getElementById('chatMessages');
+      const msgs = container.querySelectorAll('.msg-wrap.ai');
+      const lastAI = msgs[msgs.length - 1];
+      if (lastAI) container.scrollTop = lastAI.offsetTop - container.offsetTop - 8;
+    };
     if (qa.citations && qa.citations.length) {
-      setTimeout(() => { addCitationBubble(qa.citations); setTimeout(addConfidenceButtons, 300); }, 200);
+      setTimeout(() => {
+        addCitationBubble(qa.citations);
+        setTimeout(() => { addConfidenceButtons(); setTimeout(scrollToAI, 50); }, 300);
+      }, 200);
     } else {
-      setTimeout(addConfidenceButtons, 200);
+      setTimeout(() => { addConfidenceButtons(); setTimeout(scrollToAI, 50); }, 200);
     }
     btn.disabled = false; btn.style.opacity = '1';
   }, 800 + Math.random() * 500);
