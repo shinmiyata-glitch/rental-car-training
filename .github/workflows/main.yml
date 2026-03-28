@@ -1,0 +1,21 @@
+name: Claude Code Auto
+
+on:
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: 'Claudeへの指示'
+        required: true
+
+jobs:
+  claude:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install -g @anthropic-ai/claude-code
+      - run: claude -p "${{ github.event.inputs.prompt }}" --dangerously-skip-permissions
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
